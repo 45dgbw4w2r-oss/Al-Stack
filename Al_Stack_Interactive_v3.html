@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 5 – Aluminium Infrastructure Stack (Interactive v3)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family:'DM Sans',sans-serif; background:#f5f4f0; color:#1a1a1a;
+    padding:32px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  @media (max-width: 768px) {
+    body { padding: 12px 8px; }
+    .figure-wrap { padding: 20px 16px 20px !important; min-width: 900px; }
+    #hint-bar { padding: 6px 8px; }
+  }
+
+  .figure-wrap {
+    max-width:1160px; margin:0 auto;
+    background:white; border:1px solid #ddd;
+    padding:36px 40px 30px; position:relative;
+  }
+  .figure-title { font-family:'DM Serif Display',serif; font-size:20px; color:#111; margin-bottom:5px; }
+  .figure-subtitle { font-size:11px; color:#777; font-style:italic; margin-bottom:26px; }
+
+  /* ---- HINT BAR ---- */
+  #hint-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+    background: #f7f5ee; border: 1px solid #e0dbc8; border-radius: 5px;
+    padding: 7px 10px 7px 12px; margin-bottom: 20px;
+  }
+  #hint-bar-content {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 9.5px; color: #666; line-height: 1.4;
+  }
+  #hint-bar-content b { font-weight: 600; color: #333; }
+  #hint-close {
+    background: none; border: none; cursor: pointer;
+    color: #bbb; font-size: 12px; line-height: 1; padding: 1px 4px; flex-shrink: 0;
+  }
+  #hint-close:hover { color: #666; }
+
+  /* ---- STACK ---- */
+  .stack { display:flex; flex-direction:column; gap:4px; min-width:0; overflow:hidden; }
+  .layer-row { display:flex; align-items:stretch; min-height:80px; border:1.5px solid #ccc; border-radius:2px; overflow:hidden; }
+  .layer-label {
+    writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg);
+    font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+    color:white; background:#333;
+    padding:8px 6px; min-width:28px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .layer-body { flex:1; display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:10px 14px; }
+
+  /* Layer colours */
+  .l1 { border-color:#999; background:#d8d8d8; } .l1 .layer-label { background:#555; }
+  .l2 { border-color:#bbb; background:#ebebeb; } .l2 .layer-label { background:#888; }
+  .l3 { background:#f2f2ef; }                    .l3 .layer-label { background:#555; }
+  .l4 { background:#f2e4c0; border-color:#a07820; } .l4 .layer-label { background:#7a5e14; }
+  .l5 { background:#f7edd0; border-color:#c9a93a; } .l5 .layer-label { background:#9a7b28; }
+  .l6 { background:#fcfcff; border-color:#b0b0cc; min-height:130px; } .l6 .layer-label { background:#2a2a4a; }
+
+  /* Generic box */
+  .box {
+    font-size:9.5px; font-weight:500;
+    padding:5px 8px; border-radius:4px;
+    border:1px solid #d4d0c8; background:white; color:#222;
+    line-height:1.3; text-align:center;
+    transition: opacity 0.2s ease, box-shadow 0.2s ease;
+  }
+  .l4 .box { border-color:#a07820; background:#faf0d8; color:#3a2c00; }
+  .l5 .box { border-color:#c9a93a; background:#fffbf0; color:#3a2c00; }
+
+  /* Theme columns L5/L6 */
+  .theme-col { flex:1; min-width:0; display:flex; flex-direction:column; border-radius:4px; overflow:hidden; border:1.5px solid; transition: opacity 0.2s ease; }
+  .theme-header { font-size:9px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; padding:5px 6px; text-align:center; color:white; cursor:pointer; }
+  .theme-header:hover { filter: brightness(1.1); }
+  .theme-items { padding:5px 6px; display:flex; flex-direction:column; gap:3px; flex:1; }
+  .theme-item { font-size:8.5px; padding:3px 5px; border-radius:3px; line-height:1.3; text-align:center; transition: opacity 0.15s ease, box-shadow 0.15s ease; }
+  .theme-item[data-item] { cursor:pointer; }
+  .theme-item[data-item]:hover { filter: brightness(0.93); }
+
+  .ai  { border-color:#2563eb; } .ai  .theme-header { background:#2563eb; } .ai  .theme-item { background:#eff6ff; color:#1e40af; }
+  .en  { border-color:#16a34a; } .en  .theme-header { background:#16a34a; } .en  .theme-item { background:#f0fdf4; color:#15803d; }
+  .ae  { border-color:#dc2626; } .ae  .theme-header { background:#dc2626; } .ae  .theme-item { background:#fef2f2; color:#991b1b; }
+  .mo  { border-color:#ea580c; } .mo  .theme-header { background:#ea580c; } .mo  .theme-item { background:#fff7ed; color:#9a3412; }
+  .md  { border-color:#9333ea; } .md  .theme-header { background:#9333ea; } .md  .theme-item { background:#faf5ff; color:#6b21a8; }
+
+  /* Layer 1 */
+  .l1-inner { flex:1; display:flex; gap:14px; align-items:center; padding:10px 14px; }
+  .bayer-main { border:1.5px solid #999; background:#efefef; border-radius:6px; padding:10px 16px; font-size:10px; font-weight:600; color:#333; text-align:center; flex:1; }
+  .bayer-main small { display:block; font-size:8px; font-weight:400; color:#555; margin-top:2px; }
+  .byproduct-box { border:2px solid #c9a93a; background:#fffdf0; border-radius:6px; padding:9px 12px; flex:2.2; }
+  .byproduct-title { font-size:9px; font-weight:700; color:#7a5e00; letter-spacing:0.3px; text-transform:uppercase; margin-bottom:6px; }
+  .pills { display:flex; flex-wrap:wrap; gap:5px; }
+  .pill { font-size:8.5px; padding:3px 9px; border-radius:20px; background:#f5e9b8; border:1px solid #c9a93a; color:#5a3e00; font-weight:500; }
+
+  /* Layer 2 */
+  .l2-inner { flex:1; display:flex; gap:10px; align-items:center; padding:10px 14px; }
+  .supply-box { flex:1; border-radius:5px; border:1.5px solid; padding:8px 12px; text-align:center; font-size:10px; font-weight:600; }
+  .pri { border-color:#aaa; background:#f4f4f4; color:#222; }
+  .pri small { display:block; font-size:8px; font-weight:400; color:#555; margin-top:2px; }
+  .sec { border-color:#bbb; background:#f6f6f6; color:#333; }
+  .sec small { display:block; font-size:8px; font-weight:400; color:#666; margin-top:2px; }
+  .molten { font-size:8.5px; color:#555; border:1px dashed #aaa; padding:6px 10px; border-radius:4px; text-align:center; white-space:nowrap; }
+
+  /* flow arrows */
+  .flow-arrow { text-align:center; font-size:14px; color:#999; padding:2px 0 2px 30px; line-height:1; width:100%; display:block; }
+  .flow-arrow-inner { text-align:center; font-size:14px; color:#999; padding:2px 0; line-height:1; width:100%; display:block; }
+  .flow-arrow-gold { text-align:center; font-size:14px; color:#888; padding:2px 0; line-height:1; width:100%; display:block; }
+
+  /* value step annotation */
+  .val-step { text-align:center; font-size:8px; color:#9a7b28; background:#fffbee; border:1px solid #c9a93a; border-radius:3px; padding:3px 10px; font-style:italic; display:inline-block; }
+  .val-wrap { text-align:center; margin:2px 0; }
+
+  /* legend */
+  .legend { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; padding-top:14px; border-top:1px solid #e0ddd6; align-items:center; }
+  .leg-title { font-size:9px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; }
+  .leg-item { display:flex; align-items:center; gap:5px; font-size:9px; color:#444; }
+  .leg-swatch { width:20px; height:10px; border-radius:2px; flex-shrink:0; }
+  .leg-div { width:1px; height:14px; background:#ddd; }
+
+  /* ====== INTERACTIVE STATES ====== */
+  .is-faded { opacity: 0.18 !important; }
+
+  [data-l4].is-active {
+    box-shadow: 0 0 0 2px currentColor;
+    opacity: 1 !important;
+  }
+  [data-l3].is-active {
+    box-shadow: 0 0 0 2.5px #7a5e14;
+    opacity: 1 !important;
+    background: #fff9ee !important;
+    cursor: pointer;
+  }
+  [data-l3].is-active:hover {
+    box-shadow: 0 0 0 2.5px #a07820, 0 2px 8px rgba(160,120,32,0.3);
+  }
+
+  .theme-col.is-active { opacity: 1 !important; }
+  .theme-col.is-faded { opacity: 0.2 !important; }
+
+  .theme-item.item-selected {
+    outline: 2px solid white;
+    box-shadow: 0 0 0 3px currentColor;
+    font-weight: 600;
+  }
+  .theme-item.item-faded { opacity: 0.3; }
+
+  /* ====== SUB-COMPONENT CHIPS ====== */
+  .inj-chips {
+    margin-top: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    justify-content: center;
+  }
+  .subcomp-chip {
+    display: inline-block;
+    font-size: 7px;
+    font-weight: 500;
+    padding: 2px 5px;
+    border-radius: 8px;
+    border: 1px solid;
+    background: white;
+    line-height: 1.35;
+    word-break: break-word;
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.12s ease;
+    max-width: 100%;
+  }
+  .subcomp-chip:hover, .subcomp-chip:active {
+    background: #f0f7ff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  }
+
+  /* ====== TOOLTIP ====== */
+  #tooltip {
+    position: fixed;
+    z-index: 9999;
+    width: 340px;
+    background: #fff;
+    border: 1.5px solid #aaa;
+    border-radius: 7px;
+    padding: 10px 13px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+    display: none;
+    font-size: 9.5px;
+    line-height: 1.5;
+    font-family: 'DM Sans', sans-serif;
+    max-height: 380px;
+    overflow-y: auto;
+    color: #1a1a1a;
+  }
+  .tt-sub {
+    font-weight: 700;
+    font-size: 10px;
+    color: #111;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  .tt-sep { height: 1px; background: #e0ddd6; margin: 6px 0; }
+  .tt-field { margin-bottom: 5px; }
+  .tt-field:last-child { margin-bottom: 0; }
+  .tt-field b { font-weight: 600; color: #444; font-size: 9px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .tt-alloy-card { padding: 4px 0; }
+  .tt-alloy-name { font-weight: 700; font-size: 10px; color: #3a2c00; line-height: 1.4; margin-bottom: 4px; }
+  .tt-card-sep { height: 1px; background: #e8e4d8; margin: 8px 0; }
+  .tt-hint { font-size: 8px; color: #888; font-style: italic; margin-top: 8px; text-align: center; }
+
+  /* ====== PRICE STRIPS ====== */
+  .price-strip {
+    display: flex; align-items: center; justify-content: center;
+    padding: 4px 0; transition: opacity 0.25s ease; pointer-events: none;
+  }
+  .ps-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #fafaf8; border: 1px solid #d8d5ce; border-radius: 20px;
+    padding: 3px 11px; font-size: 8px; color: #555; white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .ps-layer { color: #888; font-weight: 500; }
+  .ps-sep   { color: #bbb; }
+  .ps-range { font-weight: 700; color: #1a1a1a; }
+  .ps-unit  { color: #aaa; }
+
+  /* ====== L4 PRICE BADGES ====== */
+  .price-badge {
+    display: none; font-size: 7px; font-weight: 700;
+    color: #fff; background: #3a2c00; border-radius: 8px;
+    padding: 2px 6px; letter-spacing: 0.2px; white-space: nowrap;
+  }
+  .price-badge.pb-on { display: inline-block; }
+</style>
+</head>
+<body>
+<div class="figure-wrap" style="position:relative;">
+
+  <div class="figure-title">Figure 5 — The Aluminium Infrastructure Stack</div>
+
+  <div id="hint-bar">
+    <div id="hint-bar-content">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9a7b28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+        <path d="M6 9l6-6 6 6"/><path d="M6 12l6-6 6 6"/><path d="M6 15l6-6 6 6"/>
+      </svg>
+      <span>Select an <b>end-application</b> and hover <b>Layer 4</b> and <b>Layer 3</b> for more details</span>
+    </div>
+    <button id="hint-close" title="Dismiss" onclick="document.getElementById('hint-bar').style.display='none'">✕</button>
+  </div>
+
+  <div style="display:flex; gap:14px; align-items:stretch;">
+
+    <!-- Main stack -->
+    <div class="stack" style="flex:1; min-width:0;">
+
+    <!-- L5: Strategic Verticals -->
+    <div class="layer-row l6">
+      <div class="layer-label">Layer 5 — Strategic Verticals</div>
+      <div class="layer-body" style="flex-wrap:nowrap; gap:6px; padding:8px 10px; align-items:stretch;">
+
+        <div class="theme-col ai" data-l5="ai">
+          <div class="theme-header">AI &amp; Compute</div>
+          <div class="theme-items">
+            <div class="theme-item" data-item="L5-SPS">Semiconductor packaging &amp; substrates</div>
+            <div class="theme-item" data-item="L5-DCR">Data centre racks &amp; enclosures</div>
+            <div class="theme-item" data-item="L5-SPT">High-purity sputtering targets</div>
+          </div>
+        </div>
+
+        <div class="theme-col en" data-l5="en">
+          <div class="theme-header">Energy &amp; Batteries</div>
+          <div class="theme-items">
+            <div class="theme-item" data-item="L5-EBC">EV battery casings &amp; current collectors</div>
+            <div class="theme-item" data-item="L5-GBS">Grid-scale battery storage enclosures</div>
+            <div class="theme-item" data-item="L5-SPV">Solar PV frames &amp; mounting structures</div>
+          </div>
+        </div>
+
+        <div class="theme-col ae" data-l5="ae">
+          <div class="theme-header">Aerospace &amp; Defence</div>
+          <div class="theme-items">
+            <div class="theme-item" data-item="L5-CAF">Commercial &amp; military airframes</div>
+            <div class="theme-item" data-item="L5-UAV">UAV &amp; drone structures</div>
+            <div class="theme-item" data-item="L5-MBA">Missile bodies &amp; armoured vehicles</div>
+          </div>
+        </div>
+
+        <div class="theme-col mo" data-l5="mo">
+          <div class="theme-header">Mobility</div>
+          <div class="theme-items">
+            <div class="theme-item" data-item="L5-EBW">EV body-in-white structures</div>
+            <div class="theme-item" data-item="L5-GCC">Gigacast chassis components</div>
+            <div class="theme-item" data-item="L5-LAP">Lightweight automotive body panels</div>
+          </div>
+        </div>
+
+        <div class="theme-col md" data-l5="md">
+          <div class="theme-header">Med-Tech</div>
+          <div class="theme-items">
+            <div class="theme-item" data-item="L5-MIH">Medical imaging housings (MRI/CT)</div>
+            <div class="theme-item" data-item="L5-PPK">Pharmaceutical barrier packaging</div>
+            <div class="theme-item" data-item="L5-SID">Surgical instruments &amp; device housings</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SVG: L4 → L5 arrows -->
+    <svg id="l4l5-svg" style="width:100%; height:80px; display:block; overflow:visible;">
+      <defs>
+        <marker id="arr-ai" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,6 3,0 6,6" fill="#2563eb"/></marker>
+        <marker id="arr-en" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,6 3,0 6,6" fill="#16a34a"/></marker>
+        <marker id="arr-ae" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,6 3,0 6,6" fill="#dc2626"/></marker>
+        <marker id="arr-mo" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,6 3,0 6,6" fill="#ea580c"/></marker>
+        <marker id="arr-md" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,6 3,0 6,6" fill="#9333ea"/></marker>
+      </defs>
+    </svg>
+
+    <!-- L4: Fabricated Components -->
+    <div class="layer-row l5" data-layer="4">
+      <div class="layer-label">Layer 4 — Fabricated Components</div>
+      <div class="layer-body" style="flex-wrap:nowrap; align-items:stretch; gap:4px; padding:8px;">
+
+        <div class="box" data-l4="0" style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px;">
+          <div style="font-weight:700; font-size:8px; text-align:center;">High-purity deposition components</div>
+          <div style="font-size:7px; color:#555; text-align:center;">Sputtering targets, deposition sources</div>
+          <div class="price-badge">30–300× LME</div>
+        </div>
+
+        <div class="box" data-l4="1" style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px;">
+          <div style="font-weight:700; font-size:8px; text-align:center;">Thermal management components</div>
+          <div style="font-size:7px; color:#555; text-align:center;">Heat sinks, cold plates</div>
+          <div class="price-badge">3–40× LME</div>
+        </div>
+
+        <div class="box" data-l4="2" style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px;">
+          <div style="font-weight:700; font-size:8px; text-align:center;">Electrical &amp; conductive components</div>
+          <div style="font-size:7px; color:#555; text-align:center;">Busbars, connectors, conductors</div>
+          <div class="price-badge">2–30× LME</div>
+        </div>
+
+        <div class="box" data-l4="3" style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px;">
+          <div style="font-weight:700; font-size:8px; text-align:center;">Structural extrusions &amp; profiles</div>
+          <div style="font-size:7px; color:#555; text-align:center;">Beams, frames, rails</div>
+          <div class="price-badge">2–5× LME</div>
+        </div>
+
+        <div class="box" data-l4="4" style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px;">
+          <div style="font-weight:700; font-size:8px; text-align:center;">Castings &amp; forgings</div>
+          <div style="font-size:7px; color:#555; text-align:center;">Die castings, gigacastings</div>
+          <div class="price-badge">2.5–7× LME</div>
+        </div>
+
+        <div class="box" data-l4="5" style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px;">
+          <div style="font-weight:700; font-size:8px; text-align:center;">Precision-machined components</div>
+          <div style="font-size:7px; color:#555; text-align:center;">CNC-machined, tight-tolerance</div>
+          <div class="price-badge">6–40× LME</div>
+        </div>
+
+        <div class="box" data-l4="6" style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px;">
+          <div style="font-weight:700; font-size:8px; text-align:center;">Sheet &amp; panel components</div>
+          <div style="font-size:7px; color:#555; text-align:center;">Stamped, formed, cut sheet</div>
+          <div class="price-badge">2–5× LME</div>
+        </div>
+
+        <div class="box" data-l4="7" style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px;">
+          <div style="font-weight:700; font-size:8px; text-align:center;">Foil &amp; thin-gauge components</div>
+          <div style="font-size:7px; color:#555; text-align:center;">Current collector &amp; barrier foil</div>
+          <div class="price-badge">3–8× LME</div>
+        </div>
+
+        <div class="box" data-l4="8" style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px;">
+          <div style="font-weight:700; font-size:8px; text-align:center;">Surface-treated &amp; finished components</div>
+          <div style="font-size:7px; color:#555; text-align:center;">Anodised, coated, finished parts</div>
+          <div class="price-badge">2.2–6× LME</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SVG: L3 → L4 arrows -->
+    <div style="position:relative;">
+      <svg id="l3l4-svg" style="width:100%; height:120px; display:block; overflow:visible;">
+        <defs>
+          <marker id="arr-grey" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,6 3,0 6,6" fill="#888"/></marker>
+          <marker id="arr-grey-hi" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,6 3,0 6,6" fill="#4a7a20"/></marker>
+        </defs>
+      </svg>
+      <div class="price-strip" id="ps-l3l4" style="position:absolute; top:50%; left:0; right:0; transform:translateY(-50%);">
+        <div class="ps-pill"><span class="ps-layer">L4 Fabricated components</span><span class="ps-sep">·</span><span class="ps-range">2–300×</span><span class="ps-unit"> LME</span></div>
+      </div>
+    </div>
+
+    <!-- L3: Specification-grade Alloys -->
+    <div class="layer-row l4" data-layer="3">
+      <div class="layer-label">Layer 3 — Specification-grade Alloys</div>
+      <div class="layer-body" style="flex-wrap:nowrap; justify-content:space-between; align-items:stretch; gap:6px;">
+
+        <div class="box" data-l3="0" style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:4px; text-align:center;">
+          <div style="font-weight:700; font-size:9.5px;">High-purity &amp; ultra-pure alloys</div>
+          <div style="font-size:8.5px; color:#6b4f00;">1000-series · 4N–5N</div>
+        </div>
+
+        <div class="box" data-l3="1" style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:4px; text-align:center;">
+          <div style="font-weight:700; font-size:9.5px;">Conductor-grade alloys</div>
+          <div style="font-size:8.5px; color:#6b4f00;">1350 · 8000-series</div>
+        </div>
+
+        <div class="box" data-l3="2" style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:4px; text-align:center;">
+          <div style="font-weight:700; font-size:9.5px;">Battery-grade alloys</div>
+          <div style="font-size:8.5px; color:#6b4f00;">1050/1070 · 10–15 µm foil · busbar alloys</div>
+        </div>
+
+        <div class="box" data-l3="3" style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:4px; text-align:center;">
+          <div style="font-weight:700; font-size:9.5px;">Medium-strength heat-treatable alloys</div>
+          <div style="font-size:8.5px; color:#6b4f00;">6000-series</div>
+        </div>
+
+        <div class="box" data-l3="4" style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:4px; text-align:center;">
+          <div style="font-weight:700; font-size:9.5px;">High-strength structural alloys</div>
+          <div style="font-size:8.5px; color:#6b4f00;">2000/7000-series · Al-Li · Al-Sc</div>
+        </div>
+
+        <div class="box" data-l3="5" style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:4px; text-align:center;">
+          <div style="font-weight:700; font-size:9.5px;">Casting alloys</div>
+          <div style="font-size:8.5px; color:#6b4f00;">Si-rich · gigacasting compositions</div>
+        </div>
+
+        <div class="box" data-l3="6" style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:4px; text-align:center;">
+          <div style="font-weight:700; font-size:9.5px;">Corrosion-resistant &amp; formable alloys</div>
+          <div style="font-size:8.5px; color:#6b4f00;">5000-series</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="price-strip" id="ps-l2l3">
+      <div class="ps-pill"><span class="ps-layer">L3 Specification-grade alloys</span><span class="ps-sep">·</span><span class="ps-range">1.1–22×</span><span class="ps-unit"> LME</span></div>
+    </div>
+
+    <!-- L2: Primary Aluminium -->
+    <div class="layer-row l2" style="min-height:150px; align-items:stretch;">
+      <div class="layer-label">Layer 2 — Primary Aluminium</div>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px; padding:10px 14px;">
+        <div class="supply-box pri" style="text-align:center; padding:10px 12px; width:70%;">
+          <div style="font-size:10px; font-weight:600; margin-bottom:7px;">Primary cast forms</div>
+          <div style="display:flex; gap:6px; justify-content:center;">
+            <span class="box" style="font-size:9px; font-weight:500; flex:1;">Ingots &amp; T-bars</span>
+            <span class="box" style="font-size:9px; font-weight:500; flex:1;">Rolling slabs</span>
+            <span class="box" style="font-size:9px; font-weight:500; flex:1;">Extrusion billets</span>
+          </div>
+        </div>
+        <div class="flow-arrow-inner">▲</div>
+        <div class="supply-box pri" style="text-align:center; font-size:10px; width:70%; padding:10px 12px; min-height:42px; display:flex; flex-direction:column; justify-content:center;">
+          High purity liquid primary aluminium (99.5–99.8%)<br><small>Electrolytic smelting of Al₂O₃</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="price-strip" id="ps-l1l2">
+      <div class="ps-pill"><span class="ps-layer">L2 Primary aluminium</span><span class="ps-sep">·</span><span class="ps-range">1–1.4×</span><span class="ps-unit"> LME</span></div>
+    </div>
+
+    <!-- L1: Alumina Refining -->
+    <div class="layer-row l1" style="min-height:150px; align-items:stretch;">
+      <div class="layer-label">Layer 1 — Alumina Refining</div>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px; padding:10px 14px;">
+        <div class="bayer-main" style="text-align:center; width:70%; padding:10px 12px; min-height:42px; display:flex; flex-direction:column; justify-content:center;">
+          Alumina Refining (Bayer Process)<small>Bauxite → Al₂O₃</small>
+        </div>
+        <div class="flow-arrow-gold">▲</div>
+        <div class="bayer-main" style="text-align:center; width:70%; padding:10px 12px; min-height:42px; display:flex; flex-direction:column; justify-content:center;">
+          Bauxite Mining &amp; Extraction
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /stack -->
+
+    <!-- By-products sidebar -->
+    <div id="bp-sidebar" style="width:130px; flex-shrink:0; position:relative;">
+      <svg id="bp-svg" style="position:absolute; top:0; left:0; width:100%; height:100%; overflow:visible; pointer-events:none;">
+        <defs>
+          <marker id="arr-gold-h" markerWidth="5" markerHeight="5" refX="0" refY="2.5" orient="auto">
+            <polygon points="5,0 0,2.5 5,5" fill="#c9a93a"/>
+          </marker>
+        </defs>
+      </svg>
+      <div id="bp-box" style="position:absolute; left:10px; right:0; border:2px solid #c9a93a; background:#fffdf0; border-radius:6px; padding:8px 10px; display:none;">
+        <div style="font-size:8px; font-weight:700; color:#7a5e00; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:6px;">High-value by-products</div>
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div style="font-size:7.5px; color:#5a3e00;">• Gallium <span style="color:#9a7b28;">(Bayer liquor)</span></div>
+          <div style="font-size:7.5px; color:#5a3e00;">• Vanadium <span style="color:#9a7b28;">(Bayer liquor)</span></div>
+          <div style="font-size:7.5px; color:#5a3e00;">• Scandium <span style="color:#9a7b28;">(red mud)</span></div>
+          <div style="font-size:7.5px; color:#5a3e00;">• REEs / Yttrium <span style="color:#9a7b28;">(red mud)</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /flex wrapper -->
+
+  <!-- Notes -->
+  <div style="margin-top:16px; padding-top:12px; border-top:1px solid #e0ddd6;">
+    <div style="font-size:8.5px; color:#666; line-height:1.8;">
+      <span style="font-weight:700; color:#444;">Notes:</span><br>
+      1. This stack is non-exhaustive and focuses on high-value aluminium applications across strategic end-markets.<br>
+      2. Secondary aluminium supply is excluded; high-value specification-grade applications predominantly require the purity levels only achievable through primary aluminium production.<br>
+      3. Click a vertical header to highlight its supply chain. Click an AI &amp; Compute end-application to reveal sub-components — hover chips for fabrication detail, hover highlighted alloy buckets for alloy cards.
+    </div>
+  </div>
+
+</div><!-- /figure-wrap -->
+
+<!-- Floating tooltip -->
+<div id="tooltip"></div>
+
+<script>
+// ====== DATA ======
+const STACK_DATA = {"L5-CAF":{"l4":[3,4,5],"l3":[4,5],"chips":{"3":[{"sub":"Fuselage stringer / longeron extrusion","fab":"Hot extrusion + T6511 draw-stretch (1–3 % cold stretch); multi-cavity Z/J/hat die","suf":"Chromic acid anodise Type 1C per AMS 2470 + primer","oem":"Airbus A350 fuselage stringers; Boeing 787 barrel frames; F-35 longerons"},{"sub":"Wing-spar cap / floor-beam extrusion","fab":"Hot press extrusion + T77511 over-age + controlled stretch-levelling; I- or T-section die","suf":"Sulphuric anodise Type II + epoxy primer per AMS 2471","oem":"Airbus A380 wing-spar cap; Boeing 777X floor beam; F-35 wing carry-through"}],"4":[{"sub":"Wing-rib / fuselage-frame closed-die forging","fab":"Closed-die forging on 50–100 MN press + solution treat + cold compression (1–5 % strain) + T7452","suf":"Type 1C chromic acid anodise + primer per AMS 2470","oem":"Airbus A320/A350 keel-beam ribs; Boeing 737/787 bulk bulkhead forgings"},{"sub":"Investment-cast structural bracket / fuselage fitting","fab":"Lost-wax investment casting + HIP (porosity < 0.5 %) + T6 ageing","suf":"Alodine 5200 chemical-film + epoxy primer per Boeing BMS 10-11","oem":"Spirit AeroSystems A320 door fittings; Triumph Group; Lockheed F-35 airframe brackets"}],"5":[{"sub":"Chem-milled fuselage / wing-skin panel","fab":"Rolled plate + 5-axis CNC pocket machining + chemical milling per AMS 2470 (NaOH etch)","suf":"Alclad cladding + chromic acid anodise + primer","oem":"Airbus Broughton wing-skin panels; Boeing Everett 777/787 fuselage barrel skins"},{"sub":"CNC-machined cabin floor seat track","fab":"Hot extrusion (T6511 profile) + 5-axis CNC slotting to MS33601 cross-section; anodise","suf":"Sulphuric anodise Type II + sealant; yellow dichromate on machined faces","oem":"Boeing 737/777/787 (BAC 1520-1397); Airbus A320/A350; Embraer E-Jet"}]},"l3cards":{"4":[{"alloy":"7150-T6511","spec":"UTS ≥ 593 MPa; YS ≥ 565 MPa; elongation ≥ 8 % per AMS 4252","why":"7150-T6511 delivers ~10 % wall reduction vs 7075-T6511 at equivalent load; its higher Zn:Mg ratio provides superior SCC resistance in pressurised fuselage environment over 30-year service life."},{"alloy":"7150-T77511","spec":"UTS ≥ 600 MPa; KIC ≥ 27 MPa√m (L-T); SCC threshold > 250 MPa per AMS 4252","why":"T77 over-age provides best SCC resistance of the 7150 temper family at near-peak strength — critical for lower-wing tension structure exposed to condensation. 7085-T7452 now adopted on A380 wing spars for better KIC in thick plate."},{"alloy":"7050-T7452","spec":"UTS ≥ 490 MPa; YS ≥ 421 MPa; KIC ≥ 30 MPa√m at 150 mm per AMS 4342","why":"7050's Zr addition (≤ 0.15 %) suppresses recrystallisation in thick forgings, delivering uniform properties across 200 mm sections. Cold compression reduces residual stress 43–79 %, preventing distortion during final machining."},{"alloy":"2024-T3/T351 (Alclad)","spec":"UTS ≥ 470 MPa; YS ≥ 325 MPa; fatigue endurance at 10⁵ cycles 15–20 % > 7075-T6 per AMS-QQ-A-250/4","why":"2xxx Cu-alloyed alloys have superior fatigue crack growth resistance at high cycle counts — the dominant failure mode for pressurised fuselage skins. Alclad provides sacrificial galvanic corrosion protection without primer failure."},{"alloy":"7075-T6511","spec":"UTS ≥ 538 MPa; YS ≥ 469 MPa; bearing strength ≥ 750 MPa; 6,000 lb vertical capacity per AMS-QQ-A-200/11","why":"7075-T6511 delivers required bearing strength in a machinable extrusion; press-stretched T6511 temper minimises residual stress and dimensional distortion during CNC slotting to MS33601 tolerances."}],"5":[{"alloy":"A357-T6 (AlSi7Mg0.6)","spec":"UTS ≥ 310 MPa; YS ≥ 240 MPa; elongation ≥ 5 % per AMS 4219; fatigue +30 % vs as-cast after HIP","why":"A357's higher Mg (0.6 vs 0.3 % in A356) raises T6 peak hardness and fatigue endurance; HIP eliminates macro-porosity, bringing fatigue within 80 % of wrought product. 3D geometry not achievable by machining."}]}},"L5-DCR":{"l4":[1,2,3,5,6],"l3":[0,1,3,6],"chips":{"1":[{"sub":"GPU heat sink (hybrid Cu-base + Al-fin) for air-cooled H100 / H200 / B200 / MI300 SKUs","fab":"Cu base CNC-machined from C11000; Al fin skived from 1100-O or bonded from 6063-T5; bonded-fin assembly press-fit and epoxied","suf":"Bare Al fins (1100-O natural oxide); Cu base nickel-plated; no anodize (raises thermal resistance)","oem":"NVIDIA H100/H200 SXM5 air-cooled heatsink, AMD MI300X OAM air-cooled SKU, Intel Gaudi 2 HL-225 heatsink"},{"sub":"Direct-to-chip liquid cold plate / rack manifold (aluminium variant — Cu incumbent)","fab":"Vacuum-brazed micro-channel cores from AA3003-H14 sheet fins + header tubes; or CNC-machined AA6061-T6 manifold with pressed-in Cu micro-pin array","suf":"Internal: passivated with OAT corrosion inhibitor; external: bare Al or anodize; inlet/outlet: stainless steel fittings","oem":"CoolIT OMNI All-Metal Coldplate (Al qualification track), Eaton plug-and-play LC system, OCP DHX workstream prototypes"},{"sub":"Rear-door heat exchanger (RDHx) liquid-to-air coil","fab":"Al fin: corrugated or louvred 1100-O at 0.10–0.15 mm; Cu tube: brazed or mechanically expanded into fin collar holes; assembled into door-panel frame; hydraulic pressure-tested","suf":"Al fins: bare (natural oxide); Cu tubes: bare copper; door frame: powder-coated steel or Al","oem":"Vertiv Liebert XDU passive RDHx, nVent RDHX Pro (up to 68 kW), Motivair ChilledDoor, Schneider Electric InRow RD"},{"sub":"Anodized aluminium DDR5 / RDIMM heat-spreader clip","fab":"6063-T5 extrusion (folded-channel designs) or 5052-H32 sheet blanked and brake-formed; then hard/colour anodized; press-fitted or clipped onto DIMM","suf":"Black hard anodize (Corsair, G.Skill, Kingston standard); silver or colour anodize for SKU differentiation","oem":"Corsair Vengeance DDR5, G.Skill Trident Z5, Samsung OEM server RDIMMs, Micron Crucial DDR5 Pro, SK Hynix Platinum P44 Pro"}],"2":[{"sub":"Rack-level vertical 48 V DC busbar (OCP ORv3 / HPR power distribution)","fab":"Continuous-cast EC-grade Al rod → extruded to rectangular profile → cut to length → holes punched → silver/nickel plated at contact zones","suf":"Silver or nickel plate at connector contact zones (≤0.2 mΩ contact resistance per OCP spec); bare Al anodize on rail body","oem":"Meta OCP ORv3 HPR deployment, Microsoft Azure AI rack — most ORv3 OEM busbars in 2024–2026 production are silver-nickel-plated C11000 Cu; Al under HPR qualification"}],"3":[{"sub":"Welded 4-post 19\" rack frame / OCP ORv3 frame extrusions (42U / 48U / 52U)","fab":"Direct-chill casting of 6xxx billet; hot extrusion through T-slot/channel die; age-hardened T5; CNC cut; MIG/TIG welded into frame assembly","suf":"Clear anodize (standard) or black powder coat; Alodine/chromate for EMC grounding","oem":"Meta OCP ORv3 (Sanmina-built), Google AI datacenter halls, Microsoft Azure Gen6 rack, Equinix colocation"},{"sub":"Overhead cable tray and hot-aisle containment panel / door","fab":"6063-T5 extruded ladder and trough profiles; 5052-H32 perforated containment panels; cut to length; hardware-fitted connectors; anodized or powder-coated","suf":"Clear anodize (standard) or black powder coat; conductive Alodine for EMC bonding","oem":"Equinix, Digital Realty, AWS, Meta, Google, Microsoft Azure data halls — deployed via Eaton B-Line, Legrand Cablofil, Cope/Atkore"}],"5":[{"sub":"CNC-machined billet cold plate body for direct-liquid GPU / CPU cooling (GB200, MI300X)","fab":"CNC milling of microchannel array into billet plate (channel width 0.3–1 mm, depth 1–4 mm); friction-stir-welded lid or vacuum-brazed cover; helium leak test 10⁻⁸ mbar·L/s; pressure test at 2× operating","suf":"Chemical-conversion coating (Alodine 1200) or electroless nickel plate to prevent galvanic corrosion in glycol / water loops; bare-die contact face lapped","oem":"NVIDIA GB200 NVL72 compute trays (Boyd Corp on NVIDIA RVL), HGX B300, Supermicro 4U / 2U liquid-cooled SuperServers, Dell PowerEdge XE9680L, HPE Cray EX"},{"sub":"CNC-machined coolant-distribution manifold body (in-rack / in-row CDM)","fab":"CNC milling and deep-hole gun-drilling of billet bar (>20× diameter depth); CNC tapping of G1/4\" / NPT quick-disconnect ports; pressure test at 2× operating","suf":"Type II anodize (decorative + corrosion); some clean-fluid loops use bare aluminium with passivation treatment","oem":"NVIDIA GB200 NVL72 vertical CDMs; Supermicro in-rack CDU (jointly developed with Nidec, 4U 250 kW OCP-compliant); CoolIT Systems, Vertiv Liebert, Motivair CDU manifold bodies"},{"sub":"CNC-machined aluminium top-of-rack switch / AI server chassis (billet milled)","fab":"CNC pocket-milling from solid 6061 or 7075 billet; deep thin-wall pocketing; integrated cooling fins milled into outer wall; EMI gasket grooves wire-EDM'd; hard anodize","suf":"Type II / Type III anodize; chromate conversion (Alodine 1200S) on EMI-gasket lands for electrical conductivity","oem":"NVIDIA Spectrum-X and Quantum-2 InfiniBand switches, Arista 7800, Cisco Nexus 9300, Mellanox, Supermicro and Dell 1U AI compute trays"},{"sub":"Precision-machined aluminium server-rack mounting rail and slide rail","fab":"Extruded AA6061-T6 base profile finish-CNC'd to ±0.05 mm; CNC-punched EIA-310 cage-nut squares; AA7075-T6 CNC-machined inner ball-bearing track for slide rails","suf":"Powder coat (black or grey) over chromate conversion; clear anodize on premium products","oem":"Chatsworth Products (CPI) Velocity 2-Post racks ('High-strength, lightweight 6061-T6 aluminum extrusion construction'), Martin MSR / MHD-Series, Rittal VX IT, Vertiv DCE, Eaton Paramount"}],"6":[{"sub":"Stamped/bent server chassis panels (1U / 2U / 4U)","fab":"DC-cast sheet → cold-rolled to H32 temper; blanked; CNC punched; brake-formed; laser-cut ventilation apertures; spot/laser welded","suf":"Chromate conversion (Alodine 1200) for EMC; clear anodize or powder coat for exterior","oem":"Dell PowerEdge R750/R760, HPE ProLiant DL380 Gen10/11, Supermicro SYS-6029, Foxconn/Wistron/Quanta ODM AI server builds"},{"sub":"Single-phase or two-phase immersion-cooling tank shell (welded plate structure)","fab":"5083-H111 plate cut to size; TIG/MIG welded full-penetration seams; pressure-tested to 6 bar; threaded ports for CDU connections; internal cleaning and passivation","suf":"Internal: bare Al + passivation for dielectric compatibility; external: epoxy paint or bare Al; stainless fittings at fluid connections","oem":"Submer SmartPodX, GRC ICEraQ series, LiquidStack DigitalEdge Pod, Iceotope Ku:l Series"},{"sub":"Coolant Distribution Unit (CDU) outer enclosure, panels and access doors","fab":"5052-H32 sheet laser-cut and CNC-brake-formed for panels/doors; 6063-T5 extruded rails for frame; MIG-welded and bolted assembly; powder-coated","suf":"RAL 9005 black powder coat (Vertiv standard); optional custom RAL; stainless-steel fittings for fluid connections","oem":"Vertiv CoolChip CDU 1350/2300, Motivair MCDU-70, Eaton CHx2000, CoolIT CHx series"}]},"l3cards":{"0":[{"alloy":"AA1100-O fin (≥99.0% Al); AA6063-T5 base on bonded-fin; AA3003 brazed plate-fin","spec":"1100-O TC ~222 W/m·K; fin 0.3–0.8 mm thick; fin pitch 1.5–2.5 mm; bonded-fin handles 300–500 W passive in 4U airflow","why":"1100-O delivers the highest Al-alloy thermal conductivity for fin material; 6063-T5 provides structural strength for the base where GPU contact and mounting threads live. All-Cu would double heatsink mass (and rack fan power)."},{"alloy":"AA1100 / AA3003 louvred fin (≥99.0% Al or AlMn); Cu (C12200) tubes are volume incumbent; Al-tube variant in OCP DHX qualification","spec":"Passive 20–40 kW per door; active up to 68 kW at 14 °C water; fin pitch 6–12 FPI; fin thickness 0.10–0.15 mm","why":"Al fins are universal: the fin material conducts heat radially only ~5 mm from the tube — Al ~200 W/m·K is sufficient at that scale, and Al's density is one-third Cu's, dropping a fluid-filled door (often >100 kg) into the rack hinge-load budget."}],"1":[{"alloy":"AA1350-H111 / EC-grade Al (≥99.5% Al); conductivity 61% IACS","spec":"OCP ORv3 busbar rated 300–1,400 A continuous @ 48–54 V DC; contact resistance ≤0.2 mΩ per clip; conductivity 61% IACS for AA1350","why":"At 48 V the current draw for a 33 kW IT rack drops to ~700 A vs ~2,750 A at 12 V, making the busbar thermally tractable in Al despite its ~40% lower conductivity than Cu. Al busbar weighs ~50% less and costs ~70% less per kg vs Cu."}],"3":[{"alloy":"AA6063-T5 extrusion, 2.2–6 mm wall; ASTM B221","spec":"6063-T5 UTS ~186 MPa; yield ~145 MPa; static load rating 900–2,000 lb; density 2.70 g/cm³; TC ~200 W/m·K","why":"6063-T5's extrudability allows complex T-slot/cable-channel profiles in a single pass; anodizes to a clean architectural finish for hyperscale aesthetics; cuts rack-shipping weight ~50% vs steel."},{"alloy":"AA3003-H14 (brazed micro-channel) or AA6061-T6 (machined manifold); Cu incumbent is C12200","spec":"Per-module cooling capacity ≥2.7 kW at 25 °C inlet, 2.5 L/min, leak-tested to 8.7 bar; channel width 0.3–0.8 mm; Al TC ~170–200 W/m·K vs Cu ~390 W/m·K","why":"Cu remains the default for GPU-direct cold plates (highest performance, no galvanic corrosion risk), but Al is being qualified for cost-down and weight reduction (~$8/kg saving at 2025 LME). Al requires OAT-class corrosion inhibitors and is intolerant of mixed-metal Cu contamination."},{"alloy":"AA6063-T5 (extruded) or AA5052-H32 (stamped); 0.8–1.5 mm thick; anodized finish","spec":"6063-T5 TC ~200 W/m·K; sheet 0.8–1.5 mm thick; drops top-of-DIMM temperature 4–10 °C under sustained load; JEDEC DDR5 RDIMM form factor 133×30 mm","why":"DRAM dies dissipate only 5–14 W per RDIMM, so the spreader's job is thermal smoothing — Al 6063 has sufficient conductivity, is ~5× cheaper than Cu per kg, and anodizes to deep colours for brand differentiation."},{"alloy":"AA6063-T5 (extruded tray rails); AA5052-H32 (perforated containment panels); ASTM B221","spec":"6063-T5 UTS ~186 MPa; cable tray load rating 50–150 kg/m at 3 m span; panel 1.0–2.0 mm thick; 40–55% open area","why":"Steel cable tray rusts in humid hot-aisles and induces eddy-current losses around high-current AI power feeds; 6063-T5 is non-magnetic, anodizes against pitting, and is ~1/3 the installation weight on overhead seismic supports."},{"alloy":"AA6061-T6 (primary machined billet body)","spec":"Thermal conductivity 167 W/m·K at 25 °C; yield 276 MPa; rated working pressure 0.6 MPa (87 psi); leak-tested to 8.7 bar (ToneCooling GB200 product); flatness ≤25 µm on die-contact face; channel tolerance ±10 µm","why":"AA6061-T6 is the only common alloy combining >160 W/m·K conductivity with the strength to hold thin (0.5–1 mm) channel walls without bulging at burst pressure, and its low Cu content lets it tolerate water-glycol without aggressive corrosion (unlike 2024 or 7075, which are SCC-prone in coolant loops)."},{"alloy":"AA6061-T6 billet (qualified for water-glycol pressure service)","spec":"Yield 276 MPa; burst pressure >10 bar at 60 °C (typical); port-location tolerance ±0.1 mm; density 2.70 g/cm³ (~1/3 of stainless); OCP rack-CDU loop spec ceiling ≤40 psi for 100 kW","why":"6061-T6 deep-drills cleanly to >20× diameter and holds tap threads well, while its strength gives a safe burst margin against typical OCP loop pressures ≤40 psi. Stainless or copper manifolds would survive higher pressure but add ~3× weight per rack and complicate quick-disconnect fitting design."},{"alloy":"AA6061-T6 (primary); AA7075-T6 for ultra-thin-wall structural variants requiring maximum stiffness","spec":"AA6061-T6 yield 276 MPa; UTS 310 MPa; general tolerance ±0.005\" (125 µm); connector cut-outs ±0.001\" (25 µm); anodize dielectric breakdown >500 V at 25 µm Type II","why":"Solid 6061-T6 machined chassis acts as an integral Faraday cage with milled-in cooling fins, eliminating internal fans for top-of-rack switches — a key density advantage sheet-metal chassis cannot match. 7075 is reserved for ultra-thin-wall variants where the chassis itself is a structural rack-mount element."},{"alloy":"AA6061-T6 (load-bearing rail); AA7075-T6 for slide-rail inner ball-bearing tracks","spec":"AA6061-T6 yield 276 MPa; UTS 310 MPa; fatigue strength ~96 MPa; CNC finish ±0.05 mm; load capacity 1,500 lb (680 kg) evenly distributed per Chatsworth Velocity 2-Post catalogue","why":"6061-T6 extrusion + finish-CNC is the most cost-effective way to achieve EIA-310 hole tolerance in a long rail profile. 7075 is reserved for slide-rail inner tracks where ball-bearing surface hardness matters. Steel is structurally equivalent but adds ~150 kg per rack and complicates seismic certification."}],"6":[{"alloy":"AA5052-H32 sheet, 0.8–2.5 mm; ASTM B209","spec":"UTS ~228 MPa (33 ksi); yield ~193 MPa; elongation 12–14%; TC 138 W/m·K; electrical conductivity ~35% IACS; Mg 2.2–2.8%; Cr 0.15–0.35%","why":"5052-H32's Mg content delivers ~30% higher yield than 3003 with no heat-treat needed, while maintaining the tight bend radius required for deep-drawn 1U/2U chassis. Non-heat-treatable nature means weld zones don't lose strength."},{"alloy":"AA5083-H111 (Mg 4.0–4.9%, marine-grade); AA5754-H22 for lower-stress variants","spec":"5083 UTS 270–345 MPa; Mg 4.0–4.9%; wall 4–8 mm; up to 6 bar internal pressure; coolant capacity 200–800 L","why":"5083 retains full strength after welding (unlike heat-treatable 6xxx, which lose ~40% in the HAZ), is compatible with chloride-free dielectric fluids, and avoids the rust contamination steel tanks introduce — critical at the air-vapour interface in two-phase systems."},{"alloy":"AA5052-H32 sheet for panels/doors; AA6063-T5 extruded frame rails","spec":"Vertiv CoolChip CDU 1350: 1,368 kW @ 7.2 °F approach, 320 GPM secondary flow; panels 1.5–3 mm 5052; Motivair MCDU-70: 2.5 MW per unit","why":"CDU enclosures need EMI shielding, drip-tight construction, and serviceability at heights. Al panels weigh half what cold-rolled steel does while accepting the same powder-coat finishes."}]}},"L5-EBC":{"l4":[1,2,3,6,7],"l3":[0,1,2,3,4,6],"chips":{"1":[{"sub":"Cylindrical-cell serpentine cold plate (CAB-brazed, e.g. Tesla Model 3/Y/4680)","fab":"Stamped sheets of 3003-mod/4343 clad → controlled-atmosphere brazing (NOCOLOK flux, ~600 °C N₂); form serpentine coolant channel; helium leak test","suf":"Bare brazed aluminium; thermal-interface gap-filler pad on cell-contact side; optional epoxy paint on coolant side","oem":"Tesla Model S/3/Y 21700 pack (serpentine flat-tube design); Tesla Model Y 4680 pack (contra-flow inlet/outlet); BMW i3/i4 module cooling"},{"sub":"Prismatic / blade-cell bottom cooling plate (FSW or roll-bond, cell-to-pack)","fab":"Two-piece formed-channel sheet + flat cover plate joined by friction-stir welding (FSW) or vacuum brazing; alternative: roll-bond pillow-plate; integrated manifold headers","suf":"Bare or Type II anodize (15–25 µm); thermal-pad interface to cell bottom faces","oem":"BYD Blade (top-plate cooling + Seal CTB direct-cooling plate); CATL Qilin CTP 3.0 side-mounted plate; VW MEB platform; GM Ultium pack"},{"sub":"Battery heater plate / HV PTC chiller (cold-climate battery heating loop)","fab":"Stamped channel plate (3003-H14) or extruded multi-port tube (6063-T5); over-moulded PTC heater pucks; clipped/glued to cold-plate housing","suf":"Bare or insulating anodize 25 µm Type II for HV isolation; PTC heater pucks encapsulated in silicone","oem":"Hyundai Ioniq 5 cold-climate package; BMW iX heated battery loop; Tesla Model 3 octovalve heat-pump integration"}],"2":[{"sub":"EV battery pack module-to-module busbar (cylindrical 4680/21700/prismatic packs)","fab":"Extrusion (round-corner flat bar) → CNC cut/punch → laser-weld to cell tabs; some packs use FSW Cu-to-Al transitions at dissimilar-metal joints","suf":"Bare Al; anodized clear; partial nickel plating at bolted joints; HV orange insulating coating on some Tesla designs","oem":"Tesla Model Y 4680 (confirmed Al single-sided busbars per Munro teardown); Tesla Model 3 21700; Lucid Air; BMW i4; VW ID.3/ID.4 MEB pack"},{"sub":"Pouch-cell aluminium tab / cathode-side terminal lead","fab":"Slit from coil → stamp to width → ultrasonic-welded to cathode foil stack; PP-modified sealant tape applied over the heat-seal through-section","suf":"Acid-pickled bare aluminium; sealant film 50–80 µm PP / acid-modified PP on the through-seal section","oem":"LG Energy Solution pouch cells (GM Ultium, Hyundai E-GMP); SK On (Ford F-150 Lightning); Northvolt prismatic; AESC pouch cells"},{"sub":"Heavy aluminium bond ribbon for cylindrical-cell interconnect (next-gen / premium packs)","fab":"Continuous drawing of ultra-pure Al wire → flattening rolls to ribbon profile → spool; heavy-wire ultrasonic wedge-bond to cell-can / busbar","suf":"Bare; surface oxide removed at bond pad during welding","oem":"BMW iX (Heraeus heavy-wire bonding on cylindrical cells); Mercedes EQS pack; Solid Power solid-state pilots; QuantumScape pouch demonstrators"}],"3":[{"sub":"Battery pack perimeter / side-rail extrusion","fab":"Direct extrusion through multi-port die (3–6 voids) → quench → T-temper artificial ageing → mitre-cut and FSW or MIG corner-welded into rectangular tray frame","suf":"KTL e-coat or chromate-free pretreatment; epoxy primer","oem":"Tesla Model 3/Y/Cybertruck structural pack perimeter; VW MEB tray side rail; Audi e-tron battery enclosure (Constellium-supplied, Singen/Gottmadingen DE); Lucid Air"},{"sub":"Battery module compression end-plate","fab":"Thick-wall hollow extrusion → CNC-mill cell pockets and bolt-through holes; T6 or T651 ageing for residual-stress relief","suf":"Type II anodize (15 µm clear); some powder-coated red/blue for HV identification","oem":"BMW i3/i4/i5 prismatic modules; Mercedes EQS pouch modules; VW MEB module compression frame; Audi e-tron module frame"},{"sub":"Battery tray cross-member / intrusion protection beam","fab":"Hollow multi-void extrusion → CNC end-cutting and through-hole machining → FSW or MIG weld to perimeter rail","suf":"KTL e-coat; spot-weld studs MIG-welded for harness routing","oem":"VW MEB battery tray (3 transverse beams); GM Ultium pack (Hummer EV, Cadillac Lyriq); Ford F-150 Lightning pack"}],"6":[{"sub":"Battery pack bottom shield / underbody impact protection plate","fab":"Coil → blank → stretch-form / press-brake → laser-edge-trim → adhesive bond + self-pierce rivet to perimeter rails; premium variant: friction-stir-weld to tray","suf":"KTL e-coat; optional ceramic-filled abrasion coating on underbody face","oem":"GM Ultium (Hummer EV, Cadillac Lyriq); Ford F-150 Lightning; Rivian R1T/R1S (USPTO strike-shield patent); Tesla Model Y (Novelis Advanz™-series)"},{"sub":"Prismatic cell hard-case can (deep-drawn aluminium shell)","fab":"Coil slitting → blank → drawing and ironing (DI) on transfer or progressive press, 8–12 stations; or impact extrusion for thicker walls","suf":"Bare aluminium; optional 0.2–0.3 mm PET shrink-wrap insulation sleeve","oem":"CATL prismatic cells (Qilin/L-series); BYD Blade cells; Samsung SDI prismatic; Murata; EVE Energy"},{"sub":"Battery pack lid / top cover panel","fab":"Coil → blank → stretch-form or single-action press → laser trim → adhesive + RIVTAC or self-pierce rivet to perimeter rail; EPDM gasket seal","suf":"KTL e-coat or anodize; EPDM perimeter gasket; stainless-steel hardware","oem":"Tesla Model 3/Y HV battery cover; VW MEB battery enclosure lid; Polestar 2; Mercedes EQS"}],"7":[{"sub":"Cathode current-collector aluminium foil (LFP/NMC/NCA)","fab":"Hot rolling → multi-pass cold rolling → foil mill to final gauge → double-sided pickling / passivation; no anneal (H18 hard temper)","suf":"Acid- or alkali-pickled; optional chromate-free passivation","oem":"CATL (Qilin/Shenxing/L-series), BYD Blade, LG Energy Solution, Panasonic 4680, Samsung SDI prismatic, SK On pouch"},{"sub":"Anode-side aluminium current-collector foil (Na-ion and anode-free Li-ion)","fab":"Cold rolling with intermediate annealing for higher elongation; carbon-coated (CVL) on coil-to-coil line (1–2 µm graphite/carbon-black layer)","suf":"Carbon-coated both sides (Toyo Aluminium 'Beat' process); corona-treated for adhesion","oem":"CATL sodium-ion (2023+), HiNa Battery, Faradion (UK), Northvolt Na-ion roadmap; AESC and CATL Li-anode-free pilots"},{"sub":"Aluminium barrier layer in PET/Al/CPP laminated pouch film (Li-polymer / pouch cell)","fab":"DC-cast → hot roll → cold roll → foil mill → intermediate anneal → dry lamination with PET (outer) and CPP/PP (heat-seal inner) on roll-to-roll line","suf":"Chromate-free conversion coating both sides for adhesion to PET/CPP; corona-treated polymer interface","oem":"LG Energy Solution pouch cells (GM Ultium, Hyundai/Kia E-GMP, Ford Mach-E); SK On (Ford F-150 Lightning); Audi e-tron GT pouch packs"}]},"l3cards":{"0":[{"alloy":"AA1050-O or AA1060-O","spec":"Thickness 0.2 mm; width 40 mm; UTS 70–90 MPa (O-temper); elongation ≥30 %; conductivity ≥61 % IACS; ultrasonic-weld peel strength ≥40 N/cm","why":"O-temper 1050/1060 deforms plastically under the ultrasonic-welder horn to break the surface oxide and create a solid-state bond across multiple foil layers — harder tempers fracture the foil stack. Al is used on the cathode side (not copper) to avoid galvanic corrosion at the foil interface."},{"alloy":"AA1199 or AA1N99 (≥99.99 % Al); AA1100-H14 for cost-sensitive designs","spec":"Purity ≥99.99 % Al; conductivity ≥62 % IACS; UTS 70–110 MPa as-drawn; bond shear ≥7 N at 250 µm diameter","why":"AA1199's ultra-low alloy content gives the lowest resistivity and best ultrasonic-bond formation at the cell-can interface; trace Fe/Si in AA1050 raises contact resistance ~3–5 %. The ribbon also serves as a fusible-link safety element (vaporises on overcurrent)."}],"1":[{"alloy":"AA1350-H111 (best conductivity) or AA6101-T6 (best mechanical/bolt-joint creep resistance)","spec":"Conductivity ≥61.2 % IACS (AA1350-H111 per ASTM B233); AA6101-T6 UTS 200–220 MPa, conductivity ≥57 % IACS; 62 % larger cross-section vs Cu at same current rating","why":"AA6101-T6 saves ~50 % weight and ~70 % cost vs copper at equivalent current rating; T6 temper resists bolt-load relaxation under thermal cycling — documented clamp-force relaxation from 40 kN → 25.2 kN over 881 thermal cycles. AA1350 chosen where conductivity wins; AA6101-T6 where bolt-joint durability dominates."}],"2":[{"alloy":"AA1235-H18 (dominant); AA1070-H18 and AA1100-H18 as alternates","spec":"UTS ≥230 MPa at 12 µm (Nanshan datasheet); elongation ≥3 %; thickness 12 µm ±0.5 µm; electrical conductivity ≥58 % IACS","why":"AA1235's controlled Fe (0.65–1.0 %) gives ~25 % higher post-drying UTS vs AA1050 without sacrificing conductivity, preventing foil tear during slurry coating and calendering at >50 m/min. AA1235-H18 provides the correct balance of purity and workability."},{"alloy":"AA1060-O or AA1100-H22; AA3003-O in some higher-tensile designs","spec":"Thickness 10–15 µm; UTS 80–110 MPa (O-temper); elongation ≥15 %; carbon-coating thickness 1.0–2.0 µm; coated conductivity ≥55 % IACS","why":"O-temper allows the foil to follow the jelly-roll bend radius without microcracking; the carbon coating prevents Al–Na (or Al–Li) alloying at low electrode potentials — copper anode foil would cost ~3–4× per kg for the same function. Copper is the Li-ion incumbent; aluminium displaces it in Na-ion where the anode potential is higher."},{"alloy":"AA8079-O (most common); AA8021-O (deeper-draw, higher-purity Fe/Si ratio)","spec":"Al layer 40 µm; pinhole count <1 per m² at 40 µm gauge; AA8079-O UTS 85–110 MPa; elongation ≥18 %; WVTR <0.01 g/m²/day at 38 °C / 90 % RH","why":"AA8079's balanced Fe (0.7–1.3 %) and Si (≤0.3 %) produces a fine recrystallised grain structure that resists pinhole nucleation at <50 µm and enables 6–10 mm cup drawing — 1xxx foil fractures at the corners and 3xxx is too stiff to deep-draw. Distinct supply chain from current-collector foil."}],"3":[{"alloy":"AA3003-mod core (360 µm) + AA4343 clad (20 µm each side)","spec":"Thermal conductivity ~160 W/m·K post-braze (3003-mod); burst pressure ≥1.5 MPa; channel wall 0.4–0.6 mm post-braze; cell-to-cell ΔT ≤1.5 °C at 3C charge rate","why":"AA3003-mod's Mn content gives ~30 % higher post-braze yield strength vs pure 3003 while remaining CAB-brazable; the AA4343 clad's lower solidus (~576 °C) forms the joint below the 3003 solidus, preventing core melt-through. 3003-mod is classified in L3-MED as the closest available bucket (it is technically a 3xxx Mn-alloy, not a 6xxx heat-treatable alloy)."},{"alloy":"AA6061-T6 (FSW route) or AA3003-mod/AA4343 clad (brazed route)","spec":"Plate dimensions up to 2.1 m × 1.5 m (CATL Qilin side plate); coolant-channel hydraulic diameter 3–6 mm; burst pressure ≥1.6 MPa; AA6061-T6 UTS ≥310 MPa; AA3003-mod post-braze UTS ~150 MPa","why":"FSW of AA6061-T6 retains ~70 % of parent-metal yield strength in the weld zone, enabling the cold plate to double as a structural load-bearing element in cell-to-chassis architectures (BYD CTB, Tesla structural pack); brazed 3003 cannot carry meaningful structural load but is cheaper for standalone thermal plates."},{"alloy":"AA3003-H14 (stamped plate) or AA6063-T5 (extruded tube)","spec":"Thickness 2.0 mm; thermal conductivity ~190 W/m·K (AA3003); anodized-layer dielectric strength >2 kV/mm at 25 µm; heater density 8–15 W/cm²","why":"AA3003-H14 stamps cleanly to the PTC-clamp form with sufficient stiffness; AA6063-T5 enables continuous-length tube heaters for distributed heat input. Both are classified in L3-MED as the nearest available bucket for these 3xxx/6xxx alloys."},{"alloy":"AA6061-T6 (NA standard) or AA6082-T6 / Constellium HSA6 family (EU standard)","spec":"AA6061-T6 yield ≥260 MPa, UTS ≥310 MPa; Constellium HSA6 UTS >400 MPa; elongation ≥10 % A50; wall 2.5 mm minimum via T5-temper extrusion","why":"6xxx Al-Mg-Si offers the optimum combination of extrudability (allowing complex multi-void hollows at 2.5 mm walls), strength after T6 ageing, and MIG/FSW weldability with 4043/5356 filler. 7xxx alloys would be stronger but are unweldable in production. Constellium HSA6 (announced July 2017) achieves 15–30 % weight saving vs conventional aluminium alloys."},{"alloy":"AA6082-T6 (EU standard) or AA6061-T6 (NA standard)","spec":"AA6082-T6 yield ≥260 MPa, UTS ≥310 MPa; creep at 60 °C / 0.5 σ_y <0.1 % over 8,000 h; module swelling load up to 75 kN at end-of-life (Fluence Gridstack Pro AESC 530Ah cell data)","why":"AA6082's higher Mn (0.4–1.0 %) vs 6061 (≤0.15 % Mn) raises both static strength and creep resistance — both critical for a plate holding 30+ kN compression for >10 years at 40–60 °C."}],"4":[{"alloy":"AA7003-T5 or AA7108-T6 (premium platforms); AA6082-T6 (mainstream)","spec":"AA7003-T5 yield ≥285 MPa, UTS ≥345 MPa; specific energy absorption 25–35 J/g for square-tube profile; AA6082-T6 as baseline fallback","why":"7xxx Al-Zn-Mg provides the highest extrudable strength while remaining MIG-weldable with care — the cross-member must survive a side-pole intrusion event without fracturing and exposing cells. HSA6-class 6xxx from Constellium achieves similar ~310 MPa yield with better corrosion performance at lower cost."}],"6":[{"alloy":"AA5754-O (benchmark) shifting to AA6111-T82 peak-aged (next-gen 30 % lighter)","spec":"AA5754-O UTS ≥190 MPa, yield ≥80 MPa, elongation ≥18 %; AA6111-T82 UTS ≥330 MPa; thickness 2.0 mm typical; ball-drop puncture resistance 50–80 J","why":"5xxx Al-Mg combines formability for the perimeter flange, in-service work-hardening, and weldability without heat treatment; AA6111-T82 peak-aged achieves 30 % weight saving vs 5754-O (per Constellium) at the cost of more complex paint-bake-ageing integration."},{"alloy":"AA3003-O or AA3003-H14","spec":"Wall thickness 0.5 mm (benchmark); AA3003-H14 UTS ~150 MPa, yield ≥125 MPa; elongation ≥6 %; vent burst pressure 0.8–1.2 MPa; corner thickness ratio ≥0.6×wall","why":"AA3003's Mn (1.0–1.5 %) gives ~50 % higher strength than AA1050 at similar drawability, enabling wall thinning 0.8 → 0.5 mm and ~30 % energy-density increase per Panasonic patent US7378185. AA1050 would be softer (easier drawing) but insufficient burst strength."},{"alloy":"AA5182-H111 (best formability) or AA6016-T4 (bake-hardenable, thinner gauge possible)","spec":"AA5182-H111 UTS 275 MPa, yield 130 MPa, elongation ≥25 %; AA6016-T4 UTS 215 MPa rising to ~250 MPa post 170 °C bake; thickness 1.2 mm typical","why":"AA5182-H111 provides best stretch-formability for embossed stiffening features in a single press stroke; AA6016-T4 is preferred where bake-hardening enables thinner gauge and weight saving. Both are cost-effective vs steel at this scale."}]}},"L5-EBW":{"l4":[3,4,6,8],"l3":[3,4,5,6],"chips":{"3":[{"sub":"EV rocker / sill multi-void crash extrusion","fab":"Hot extrusion of multi-cell box + T6 + 3D bending + KTL e-coat","suf":"Cathodic KTL e-coat ≥ 20 µm","oem":"Tesla Model Y sill; BMW i4/iX rocker; Rivian R1T sill; Polestar 2 rocker"},{"sub":"EV A/B-pillar reinforcement extrusion","fab":"Hot extrusion + T5 press-quench on exit; CNC cut + hydroform + e-coat","suf":"Cathodic KTL e-coat ≥ 20 µm","oem":"BMW i7 B-pillar; Mercedes EQS B-pillar; Audi e-tron GT door ring"}],"4":[{"sub":"EV shock-tower / spring-tower structural node (vacuum HPDC)","fab":"Vacuum-assisted HPDC on 2,200–4,400 t machine + T7 over-age; de-gate + shot-blast + CNC datum","suf":"Shot-blast + KTL e-coat ≥ 18 µm","oem":"BMW i3/i4/i7 front node (GF Casting Solutions); Mercedes EQS; Audi e-tron GT; Honda 0 EV"},{"sub":"EV subframe / front cradle casting","fab":"Vacuum HPDC on 2,200–5,000 t machine + T6/T7 + datum CNC","suf":"Shot-blast + KTL e-coat + clearance-drilled suspension mountings","oem":"Tesla Model 3 front cradle; BMW iX; Audi e-tron GT; NIO ET7"}],"6":[{"sub":"EV outer body panel skin (hood/bonnet, door, fender)","fab":"Cold rolling + T4 pre-age + stamping + paint-bake (180 °C → T8x bake-hardening)","suf":"Conversion coat + cathodic e-coat + paint (OEM colour over-spray)","oem":"Audi A8/e-tron; Jaguar Range Rover Sport; BMW i7; Tesla Model S/X; Mercedes EQS"},{"sub":"EV inner-panel deep-draw sheet (door inner, hood inner, firewall)","fab":"Cold rolling + O-temper annealing + deep-draw press forming up to 250 mm draw depth","suf":"Conversion coat + cathodic e-coat; no visible surface requirement","oem":"BMW iX firewall inner; Mercedes EQS door inner; Tesla Model Y dash inner"}],"8":[{"sub":"Anodised decorative door-surround / window-frame bright trim","fab":"Extrusion of 6063-T5 + bright-dip (NaOH/HNO₃) + sulphuric anodise clear or champagne","suf":"Bright clear or champagne anodise 8–15 µm per AAMA 607.1; UV-sealed","oem":"Audi A8/e-tron window surround; BMW 7-series bright trim; Mercedes S-class door surround"},{"sub":"E-coated structural BIW assembly (post-weld universal corrosion treatment)","fab":"BIW sub-assembly MIG/FSW welding → 5-stage zinc-phosphate pre-treat + cathodic KTL dip","suf":"Cathodic KTL e-coat ≥ 20 µm (BASF Cathoguard / PPG Powercron / Henkel Bonderite)","oem":"Universal: Tesla, BMW, Mercedes, Audi, Rivian all-Al BIW assemblies"}]},"l3cards":{"3":[{"alloy":"6082-T6","spec":"YS ≥ 260 MPa; UTS ≥ 310 MPa; specific energy absorption 16–26 kJ/kg axial crush (multi-cell); elongation ≥ 8 %","why":"6082-T6 extrudes complex multi-cell hollow profiles with 2.5 mm walls, providing controlled progressive collapse under side-pole intrusion. 7003 would be stiffer but fractures catastrophically — fatal for door-side battery protection."},{"alloy":"AA6016A-T4","spec":"YS 100–110 MPa (T4) → ≥ 200 MPa (T8x after 180 °C/20 min bake); UTS 210–220 MPa; A80 ≥ 27 %","why":"6016A provides the bake-hardening response for Class A closure panels — low pre-bake YS for wrinkle-free stamping, while paint-bake activates precipitation hardening raising dent resistance ~100 %. Innoval Technology: 'main alloy used for external panels in the EU'."},{"alloy":"AA6063-T5 (bright-anodise grade, Fe ≤ 0.10 %)","spec":"Oxide film 8–15 µm; reflectance > 70 %; UV delta-E < 1 after 2,000 h Xenon weathering","why":"6063's ultra-low Fe+Si produces a near-pore-free anodic film for mirror reflectance — impossible on 6061 due to its higher Fe/Mg intermetallic inclusions."}],"4":[{"alloy":"7003-T5 (alt Constellium HSA6 / AA7108-T6)","spec":"YS ≥ 290 MPa (7003-T5); ≥ 350 MPa (HSA6/7108-T6); 15–30 % weight saving vs 6082 per Constellium HSA6 brochure","why":"Press-quenched 7000-series achieves 350+ MPa yield in a 2 mm wall section — the pillar must carry full vehicle weight in roof-crush (≥ 3× vehicle weight per FMVSS 216) within the door architecture packaging envelope."}],"5":[{"alloy":"Silafont-36 (AlSi10MnMg / AlSi9MgMn-T7)","spec":"UTS ≥ 250 MPa (T7); YS ≥ 130 MPa; elongation ≥ 10 %; Fe ≤ 0.15 % per Rheinfelden Alloys datasheet","why":"Silafont-36 low-Fe (≤ 0.15 %) is the only HPDC chemistry combining ≥ 10 % elongation with commercial castability — needed to survive self-pierce riveting in multi-material EV BIW assembly."},{"alloy":"AlSi9Cu3(Fe) EN AC-46000 (Auralᵀᴹ-5 class)","spec":"UTS ≥ 240 MPa (F temper); YS ≥ 140 MPa; wall 3–6 mm; cycle time ≤ 120 s at 20 kg shot weight","why":"AlSi9Cu3 is the volume-dominant HPDC alloy for non-SPR-joined subframes — recycles efficiently with secondary Al scrap, reducing alloy cost ~15 % vs Silafont-36."},{"alloy":"6082-T6 / Silafont-36 mix (substrate alloys)","spec":"KTL film ≥ 20 µm; salt-spray ≥ 1,000 h to red rust (VDA 233-102 cyclic); cross-hatch adhesion 5B per ASTM D3359","why":"Cathodic e-coat with zinc-phosphate pre-treat provides throw into hollow extrusion sections AND adhesion to all Al alloy families (6xxx, 7xxx, 5xxx, cast alloys) in one dip — mandatory on all Al BIW."}],"6":[{"alloy":"AA5182-O","spec":"UTS ≥ 275 MPa; YS ≥ 130 MPa; A80 ≥ 24 %; LDR ≈ 2.5 at 250 °C warm forming per ResearchGate","why":"AA5182-O has the highest elongation of 5xxx outer-panel alloys — enables door-inner bowl depths up to 250 mm that split 6016. Non-heat-treatable, so weld zones retain full ductility when MIG-welded to structural extrusions."}]}},"L5-GBS":{"l4":[1,2,3,6,7],"l3":[1,2,3,6],"chips":{"1":[{"sub":"Grid-scale battery rack liquid-cooled cold plate (modular, prismatic LFP cells)","fab":"Stamped AA3003-mod/AA4343-clad sheets → CAB brazing (NOCOLOK flux, ~600 °C N₂ atmosphere) at larger format than EV; integrated multi-pass manifold","suf":"Bare brazed aluminium; typical EG/W 50/50 coolant loop","oem":"CATL TENER 6.25 MWh (unveiled April 9 2024 — 'world's first mass-producible battery storage with zero degradation in the first five years'); Tesla Megapack 2 XL liquid loop; Sungrow PowerTitan 2.0 5 MWh; BYD MC Cube; Fluence Gridstack Pro"},{"sub":"Air-cooled extruded heat-sink fin array (legacy / outdoor BESS, LFP air-cooled systems)","fab":"Hot extrusion of fin profile → cut to length → black anodize → mechanical clip or thermally-conductive epoxy bond to module casing","suf":"Black anodize (Type II, 12–18 µm) for enhanced radiative emissivity (ε ≥0.85)","oem":"Sungrow ST2752UX (air-cooled variant); Pylontech Force-H2 residential; EnerSys outdoor cabinets; Eaton xStorage Compact; Huawei LUNA2000 residential"}],"2":[{"sub":"Grid-scale battery rack DC busbar (intra-rack, kA-class)","fab":"Continuous extrusion → straightening → CNC drilling/punching → silver or tin-plating at bolted joints","suf":"Silver-plated or tin-plated joint pads (contact resistance ≤0.1 mΩ); bare anodize on rail body; epoxy-painted on insulated sections; HV orange marking","oem":"Tesla Megapack 2/2XL/3 (internal busbar, alloy undisclosed — flagged); Tesla Megablock flexible busbar assembly (RE+ Sept 2025); Fluence Gridstack Pro; BYD MC Cube; CATL EnerC/TENER; Sungrow PowerTitan; Wärtsilä Quantum"},{"sub":"DC cable conductor (battery-string to inverter, 150–400 mm², 1,500 V DC)","fab":"Aluminium wire-drawing → concentric stranding (19–61 strands) → compression → XLPE extrusion → outer LSZH/PVC sheath","suf":"XLPE insulation; PVC or LSZH outer sheath; anti-termite option for tropical deployments","oem":"Tesla Megapack DC homerun (1,500 V DC); Fluence Gridstack DC trunking; all major utility-scale BESS DC string cabling between battery strings and PCS/inverter"},{"sub":"Grid-side AAC / AAAC overhead conductor (BESS substation tie-in, 33–132 kV)","fab":"Continuous casting → wire-drawing → concentric-lay stranding per ASTM B231 (AAC) or B399 (AAAC); cross-sections 100–800 mm²","suf":"Bare conductor (no insulation for overhead line)","oem":"All grid-scale BESS substation interconnects; integral to AC-side switchyard tie-in for every utility-scale BESS installation globally"}],"3":[{"sub":"BESS rack vertical structural column / upright","fab":"Extrusion → CNC cut-to-length → CNC mounting-hole pattern → anodize or powder-coat","suf":"Powder-coated RAL 7035 (light grey) or anodized clear; T-slot for assembly hardware","oem":"Fluence Gridstack Pro Cube (Gen 6); CATL EnerC; BYD Cube Pro; Sungrow PowerTitan; Huawei LUNA2000 stack modules"},{"sub":"BESS cabinet door frame / panel-frame extrusion","fab":"Extrusion of multi-cavity hollow profile with integrated EPDM gasket channel → mitre cut → corner-key joining → anodize","suf":"Anodized clear Type II (15 µm) or powder-coated; EPDM gasket pre-installed in groove","oem":"Polinovel C&I outdoor BESS cabinet (IP55); Sungrow PowerStack indoor; Sungrow PowerTitan 2.0 outdoor; BYD MC Cube 20-ft; Huawei LUNA2000-7"},{"sub":"Outdoor container skid rail / mounting base extrusion (heavy-duty)","fab":"Heavy extrusion (1,500–4,000 t press) → CNC forklift-pocket and ISO corner-fitting machining; lengths to 12.2 m (40-ft container standard)","suf":"Powder-coated RAL 7035 or bare mill; anodized variants for marine/coastal BESS deployments","oem":"Premium aluminium outdoor BESS cabinets for hurricane / tropical deployments; some Tesla Megapack 2XL coastal subframes; high-corrosion-zone containerised BESS in Caribbean, SE Asia, Pacific Islands"}],"6":[{"sub":"Outdoor BESS cabinet weatherproof side panel","fab":"Coil → blank → CNC bend/press-brake → MIG-weld seams (5xxx alloys) → powder-coat or anodize","suf":"Powder-coated RAL 7035 (standard light grey) or RAL 9005 (black); marine variants anodized 25 µm Class I","oem":"Polinovel outdoor C&I BESS (IP55); Sungrow PowerStack; Pylontech Force-H outdoor; Eaton xStorage Pro; ABB outdoor BESS cabinets"},{"sub":"Fire-rated inter-rack partition / firewall plate","fab":"Plate rolling → CNC cut → press-brake → bolt/weld to cabinet frame; some designs laminated with ceramic-fibre insulation board","suf":"Powder-coated + optional intumescent coating on fire-facing side","oem":"Fluence Gridstack Pro Cube (UL 9540A Beyond-Burn-tested — no enclosure-to-enclosure propagation); CATL TENER cell-block partition; Tesla Megapack inter-pack separators (mostly steel, some Al composite)"},{"sub":"Containerised BESS floor / mounting checker plate","fab":"Hot rolling with checker-pattern roll → anneal to H temper → blank → laser-edge-trim; some designs CNC-drill cable-gland holes","suf":"Mill-bright checker finish; anti-slip Ra ≥12 µm on raised pattern","oem":"20-ft and 40-ft containerised BESS systems where Al floor is specified — Sungrow PowerTitan optional, coastal/tropical Tesla Megapack deployments"}],"7":[{"sub":"Grid-scale LFP cathode current-collector foil (same merchant SKU as EV, relaxed cosmetic spec)","fab":"Same as Row 41 — hot rolling → cold rolling → foil mill → pickling; often 13–15 µm (slightly thicker than automotive) for longer cycle-life","suf":"Acid-pickled; typically no passivation for LFP application","oem":"Tesla Megapack (CATL/LG cells); Fluence Gridstack Pro (AESC 530Ah cells); CATL TENER 6.25 MWh; BYD Cube Pro; Sungrow PowerTitan 2.0; Huawei LUNA2000"}]},"l3cards":{"1":[{"alloy":"AA1350-H111 (most common, highest conductivity) or AA6101-T6 (bolt-joint creep preference)","spec":"AA1350-H111 conductivity ≥61.2 % IACS (ASTM B233); AA6101-T6 UTS ≥200 MPa, conductivity ≥57 % IACS; ampacity 1.4 A/mm² (Al) vs 2.0 A/mm² (Cu); 62 % larger cross-section vs Cu at same current","why":"AA1350 maximises conductivity for low-voltage / high-current DC service; AA6101-T6 trades 4 % conductivity for 2.5× yield strength where long-term bolt-joint relaxation matters. Aluminium saves 60–70 % busbar cost vs copper at >1,500 A scale."},{"alloy":"AA8030-H19 (creep-resistant, EEI-compliant) or AA1350-H19 (legacy)","spec":"AA8030-H19 conductivity ≥61 % IACS; DC resistance per ASTM B231/B232; UTS ≥165 MPa; elongation ≥6 %; 1,500 V DC rated; flame retardant UL 4703 / IEC 60332","why":"AA8030 adds Fe (~0.5 %) and Cu (~0.2 %) to AA1350 to suppress cold-flow at bolted compression terminations — the historical 1960s–70s aluminium-wiring failure mode — while preserving ≥61 % IACS conductivity. Aluminium dominates above 150 mm² on a cost basis."},{"alloy":"AA1350-H19 (AAC) or AA6201-T81 (AAAC)","spec":"AAC (AA1350) conductivity 61.2 % IACS; AAAC (AA6201-T81) UTS ≥315 MPa, conductivity ≥52.5 % IACS; sag-temperature limit 75 °C (AAC) / 90 °C (AAAC)","why":"AAAC's AA6201-T81 adds Mg+Si (~0.7 %/~0.5 %) for triple the tensile strength of AAC at mild conductivity cost, enabling longer self-supporting spans without a steel core. ACSR (steel-cored) would be used for very long spans or high ice-load zones."}],"2":[{"alloy":"AA1235-H18 (dominant); AA1070-H18, AA1100-H18 as alternates","spec":"UTS ≥230 MPa (Nanshan 12 µm spec); thickness 13 µm ±0.5 µm; conductivity ≥58 % IACS","why":"Same engineering rationale as EV cathode foil (Row 41). Grid cells tolerate slightly thicker foil (13–15 µm) to maximise cycle life over volumetric energy density. Price premium over automotive spec is minimal — grids are more cost-sensitive."}],"3":[{"alloy":"AA3003-mod / AA4343-clad (likely per Chalco BESS datasheet) — [needs verification for CATL TENER specifically]","spec":"Plate size up to 1.5 m × 0.8 m; burst pressure ≥1.6 MPa; cell-to-cell ΔT ≤3 °C (CATL TENER spec); thermal conductivity ~160 W/m·K post-braze","why":"Same alloy rationale as EV cylindrical cold plate (Row 47) but scaled to rack format; CAB brazing scales routinely to >1.5 m × 1 m plates. Aluminium preferred over copper at this scale for cost and weight."},{"alloy":"AA6063-T5","spec":"AA6063-T5 yield ≥145 MPa, UTS ≥185 MPa; thermal conductivity 209 W/m·K; thermal resistance 0.05–0.10 K/W per module; black-anodize emissivity ε ≥0.85","why":"6063 extrudes the thinnest fins (~1 mm) at the lowest cost (same alloy as solar-frame mass production); 6061 has ~10 % lower thermal conductivity due to higher Mg content and is harder to extrude to thin fins."},{"alloy":"AA6063-T5 (light-duty), AA6061-T6 (mainstream), AA6082-T6 (heavy-duty / seismic Zone 4)","spec":"AA6061-T6 yield ≥240 MPa; column compressive load ≥10 kN per module; rack total ~700 kg; deflection <3 mm under design load at 4-module stack","why":"6061-T6 is the NA standard (UL listing familiarity); 6082-T6 used in EU/Asia for higher seismic loads. Both are 6xxx-series classified in L3-MED."},{"alloy":"AA6082-T6 (preferred for high-load / coastal) or AA6061-T6","spec":"AA6082-T6 yield ≥260 MPa, UTS ≥310 MPa; deflection <L/300 under 4,000 kg point load; salt-spray per ASTM B117 >1,000 h; fork-tine load ≥8 kN/rail","why":"AA6082-T6 used in EU shipbuilding-spec coastal applications (Lloyd's / DNV certified); AA6061-T6 standard in NA. Aluminium chosen only where weight or salt-corrosion justifies premium over galvanised steel."}],"6":[{"alloy":"AA5052-H32 (most common) or AA5754-H22 (marine grade)","spec":"AA5052-H32 UTS ≥230 MPa, yield ≥195 MPa, elongation ≥10 %; AA5754-H22 UTS ≥220 MPa; salt-spray per ASTM B117 >1,000 h at 2.5 mm; weight 6.75 kg/m² at 2.5 mm","why":"5xxx Al-Mg work-hardens during bending without cracking, has excellent weld-zone strength retention, and resists salt-spray — critical for coastal BESS deployments. 5754 chosen for marine IP65 environments (higher Mg for improved corrosion resistance)."},{"alloy":"AA5083-H111 (best fire performance + marine corrosion) or AA5754-H22","spec":"AA5083-H111 UTS ≥275 MPa, yield ≥125 MPa, elongation ≥15 %; thermal conductivity 117 W/m·K; melt onset ~570 °C; UL 9540A fire-test compliant when laminated; salt-spray >2,000 h","why":"AA5083 is the highest-Mg practical 5xxx alloy (4.0–4.9 % Mg), giving the best post-fire residual strength. Widely accepted by Lloyd's Register and DNV for fire-rated marine bulkheads — the same standard applied to containerised BESS."},{"alloy":"AA5083-H114 or AA5754-H24 checker plate","spec":"AA5083-H114 UTS ≥305 MPa, yield ≥215 MPa; design live load 4.8 kN/m²; anti-slip coefficient of friction ≥0.5; salt-spray >2,000 h per ASTM B117","why":"5083 marine-grade checker plate withstands the salt-fog conditions of tropical coastal BESS deployments where galvanised steel corrodes within 5 years. High Mg content gives best post-service residual strength if plate is damaged during maintenance."}]}},"L5-GCC":{"l4":[3,4,6,8],"l3":[3,5,6],"chips":{"3":[{"sub":"Rear floor cross-member extrusion (adjacent to rear gigacast)","fab":"Hot extrusion + T6 + 3D bend + CNC end-machining; FSW to rear gigacast mounting flanges","suf":"Cathodic KTL e-coat ≥ 18 µm","oem":"Tesla Model Y rear floor; Tesla Cybertruck mid-rail; Volvo EX90 floor cross-member"},{"sub":"Gigacast-to-battery-tray transition bracket / extrusion","fab":"Hot extrusion + CNC machining of bolt pattern and boss features; SPR or bolt to gigacast and battery frame","suf":"Cathodic KTL e-coat","oem":"Tesla Model Y; Volvo EX90; Ford F-150 Lightning battery-tray-to-gigacast transition"}],"4":[{"sub":"Rear underbody mega-casting (single-piece rear floor / shock-tower integration)","fab":"Vacuum HPDC on 6,100–9,000 t Giga Press + T7 over-age or F temper","suf":"Shot-blast + cathodic KTL e-coat ≥ 18 µm","oem":"Tesla Model Y rear underbody; Tesla Cybertruck rear; Volvo EX90; Zeekr 001"},{"sub":"Front sub-frame / nose mega-casting (front underbody integration)","fab":"Vacuum HPDC on 4,400–6,800 t machine + T7 or F temper; shot-blast + CNC datum faces","suf":"Shot-blast + KTL e-coat ≥ 18 µm","oem":"Ford F-150 Lightning front; Tesla Model Y front; NIO ET5/ET7; BYD Seagull front"}],"6":[{"sub":"Cast-in reinforcement insert patch (bonded into gigacast cavity)","fab":"Sheet stamped → insert into HPDC die before shot; partially melted into Al melt; FSW or SPR post-cast bond","suf":"Bare aluminium surface (insert bonds during HPDC shot)","oem":"Tesla Model Y rear gigacast attachment nodes; Hyundai 'Hypercasting 2026' insert programme"},{"sub":"EV underbody heat-shield / floor panel (beneath gigacast)","fab":"Roll-form + stamp; bonded or clip-fastened to underside of rear gigacast; embossed thermal pattern","suf":"Bare or aluminised ceramic-filled coating; IR reflectivity > 70 %","oem":"Tesla Model Y underbody heat shield; Lucid Air; Rivian R1T thermal management"}],"8":[{"sub":"Shot-blasted + e-coated gigacast assembly (universal post-casting surface treatment)","fab":"Robotic shot/grit blast (Sa 2.5 per ISO 8501-1) → 5-stage zinc-phosphate → cathodic KTL dip","suf":"Cathodic KTL e-coat 18–25 µm","oem":"Tesla Model Y/Cybertruck rear gigacast; Ford F-150 Lightning front casting; Volvo EX90"}]},"l3cards":{"3":[{"alloy":"6082-T6","spec":"YS ≥ 260 MPa; UTS ≥ 310 MPa; FSW weld joint efficiency ≥ 80 % parent metal","why":"6082-T6 FSW-welds to AlSi gigacast alloys without hot-cracking — the dominant failure mode of 7xxx welded to Si-bearing castings. Cross-member carries battery pack edge-load to gigacast attachment structure."},{"alloy":"6061-T6","spec":"UTS ≥ 310 MPa; YS ≥ 276 MPa; bearing strength ≥ 580 MPa at 10 mm bolt dia.; CTE 23.6 µm/m·K","why":"6061-T6 is the standard precision-machined bracket alloy — its YS is sufficient for shear loads from crash event at the gigacast/battery interface, and uniform machinability produces consistent bolt-hole tolerance."}],"5":[{"alloy":"Silafont-36 (AlSi10MnMg-T7); Tesla custom ~AA386 class (89.5% Al / 8.5% Si per Munro spectrometry)","spec":"Shot weight ≈ 80 kg (IDRA OL-6100 max 110 kg); clamping force 55,000–88,000 kN; UTS ≥ 250 MPa T7; elongation ≥ 10 %; wall 2.5–4 mm","why":"Silafont-36 low-Fe (≤ 0.15 %) is the only commercial HPDC alloy combining flow > 1.2 m in thin wall and elongation ≥ 10 % for SPR-joinable single-piece body — the defining alloy constraint for gigacasting commercial viability."},{"alloy":"Castasil-37 (AlSi9MnMg, F temper — no heat treatment) or Silafont-36 T7","spec":"UTS ≥ 230 MPa (Castasil-37 F); elongation ≥ 12 %; wall 3–5 mm; mass saving 10–20 % vs stamped/welded subframe per ANP Jan 2024","why":"Castasil-37 provides ≥ 12 % elongation in the as-cast (F) condition without T7 heat treatment, eliminating distortion on a 1.6 m casting — significant cycle-time and tooling benefit vs Silafont-36 T7."},{"alloy":"Silafont-36 / Castasil-37 (substrate)","spec":"KTL film 18–25 µm; VDA 233-102 cyclic salt-spray ≥ 720 h to red rust; adhesion 5B per ASTM D3359","why":"Shot blasting removes die-release lubricant and creates 2–3 µm Ra roughness that anchors zinc-phosphate crystals for KTL adhesion. AlSi HPDC without pre-blast fails salt-spray < 200 h."}],"6":[{"alloy":"AA5182-O or AA6016-T4","spec":"UTS ≥ 275 MPa (5182-O); melt-back depth < 0.1 mm at 700 °C; bearing strength at insert ≥ 2× casting matrix","why":"A pre-formed sheet insert placed in the die bonds to the surrounding AlSi melt, creating a locally reinforced zone where suspension or battery fasteners impose concentrated bearing loads — impossible to achieve with uniform gigacast wall."},{"alloy":"AA3003-H14 (primary) or AA5052-H32","spec":"UTS ≥ 150 MPa (3003-H14); k = 162 W/m·K; IR reflectivity > 70 % bare; weight < 1.5 kg/m² at 0.5 mm","why":"3003-H14 provides cheapest high-reflectivity sheet that stamps cleanly into embossed thermal patterns — passive IR reflection deflects motor/battery radiated heat without insulation mass penalty."}]}},"L5-LAP":{"l4":[3,4,6,8],"l3":[3,4,5,6],"chips":{"3":[{"sub":"Bumper beam / crash-management extrusion","fab":"Hot extrusion + T6 + 3D bend + CNC end-machining; crash-box welded","suf":"Cathodic KTL e-coat ≥ 18 µm","oem":"Volvo XC60 bumper beam; BMW 3-series crash management; Audi A6/A7; Toyota bZ4X"},{"sub":"Roof rail / door-frame reinforcement extrusion","fab":"Hot extrusion + T5 press-quench on exit; CNC cut; MIG weld to door ring","suf":"Cathodic KTL e-coat","oem":"Audi A7 door ring; BMW 5-series roof rail; Volvo S90 roof sill"}],"4":[{"sub":"Cast A-pillar / hinge-pillar structural node (LPDC or vacuum HPDC)","fab":"LPDC + HIP + T6 + datum CNC machining; or vacuum HPDC for higher volume","suf":"Shot-blast + KTL e-coat","oem":"BMW 5/7-series hinge pillar; Mercedes S-class A-pillar node; Audi A8 front cast"},{"sub":"Cast door-hinge body (HPDC, universal application)","fab":"HPDC on 250–800 t machine + F or T5 temper; CNC pin-bore ±0.02 mm","suf":"Powder coat or KTL e-coat","oem":"Universal: BMW, Mercedes, Audi, VW, Toyota, Ford — all aluminium-intensive closures"}],"6":[{"sub":"Outer body skin sheet (hood, door, fender, tailgate) — automotive Class A","fab":"Cold rolling + T4 pre-age + stamping + paint-bake (180 °C) → T8x bake-hardening","suf":"Conversion coat + cathodic e-coat + primer + OEM colour topcoat (Class A)","oem":"Range Rover Sport (full Al BIW); Audi A6/A8; BMW 7-series; Tesla Model S"},{"sub":"Structural inner-panel sheet (door inner, hood inner, trunk inner)","fab":"Cold rolling + O-temper + deep-draw press forming; MIG-welded to BIW extrusion ring","suf":"Conversion coat + cathodic e-coat","oem":"BMW 7-series door inner; Mercedes E-class hood inner; Jaguar XE door inner"}],"8":[{"sub":"Pre-treated / mill-coated automotive body sheet (Novelis Advanzᵀᴹ coated)","fab":"Cold rolling + T4 + coil-applied conversion coat + thin epoxy primer at the mill","suf":"Mill-applied conversion coat + thin epoxy basecoat; OEM colour topcoat at body shop","oem":"Jaguar XE (Novelis Advanz — PR Newswire Dec 2014); Land Rover Discovery Sport; Jaguar F-Pace"},{"sub":"Anodised bright-trim body moulding / window surround","fab":"Extrusion + bright-dip (NaOH/HNO₃) + sulphuric anodise clear or champagne","suf":"Bright clear anodise 8–15 µm; colour-dye sealed; UV stable > 10 years per AAMA 607.1","oem":"BMW 7-series door surround; Rolls-Royce Phantom brightwork; Bentley Continental GT trim"}]},"l3cards":{"3":[{"alloy":"AA6082-T6","spec":"YS ≥ 260 MPa; UTS ≥ 310 MPa; RCAR 15 km/h — no bodyshell deformation with 6082 multi-cell; SEA ≥ 18 J/g axial","why":"6082-T6 is the global standard for EU/Asian bumper beams — Mn content (0.4–1.0 %) gives superior sustained-crush response vs 6005A, while T6 temper provides consistent yield reproducibility for crash simulation correlation."},{"alloy":"AA6016A-T4 (EU); AA6111-T4P (NA/JLR)","spec":"YS 100–110 MPa (T4) → ≥ 200 MPa (T8x post-bake); UTS 210–220 MPa; A80 ≥ 27 %","why":"6016A is the dominant EU automotive closure-panel alloy per Innoval Technology. JLR uses 6111 to achieve same post-bake YS at 0.1 mm thinner gauge."},{"alloy":"AA6016A-T4 (Advanz family)","spec":"Cross-hatch adhesion 5B per ASTM D3359; salt-spray ≥ 750 h; coil-cure 180–200 °C; compatible with OEM aqueous paint","why":"Mill-applied conversion + thin primer allows direct supply to JLR body shop, reducing OEM pre-treatment bath size and phosphate sludge — key sustainability benefit enabling JLR's aluminium-intensive architecture."},{"alloy":"AA6063-T5 (bright-anodise grade, Fe ≤ 0.10 %)","spec":"Oxide film 8–15 µm; reflectance > 70 %; HV hardness 80–120; UV delta-E < 1 after 2,000 h Xenon","why":"6063 ultra-low Fe+Si produces near-pore-free anodic film for mirror reflectance — impossible on 6061 due to Fe/Mg intermetallics. Replaces chrome-on-steel brightwork (Cr(VI) REACH/RoHS-restricted)."}],"4":[{"alloy":"AA7003-T5 (alt 6061-T6 or Constellium HSA6)","spec":"YS ≥ 290 MPa (7003-T5); ≥ 350 MPa (HSA6); FMVSS 216 ≥ 3× vehicle weight at 250 mm crush","why":"7003-T5 press-quenched delivers 290+ MPa yield in 1.8 mm wall — the pillar carries full vehicle roof-crush load within door-glass aperture packaging."}],"5":[{"alloy":"A356-T6 LPDC (or AlSi10MgMn for HPDC variant)","spec":"UTS ≥ 290 MPa; YS ≥ 200 MPa; fatigue endurance ≥ 70 MPa per AMS 4218; HIP porosity < 0.5 %","why":"A356-T6 LPDC + HIP combines 70 MPa fatigue endurance with the geometric complexity for A-pillar nodes — not achievable by die-casting (porosity) or machining (multi-plane geometry). Hinges cycle 100,000+ times over vehicle life."},{"alloy":"A380.0 / AlSi9Cu3(Fe)","spec":"UTS ≥ 240 MPa; YS ≥ 165 MPa; HPDC cycle ≤ 60 s; hardness 80–90 HRB","why":"A380/AlSi9Cu3 Cu content (2–4 %) improves bearing hardness at the pin interface; self-lubricating Si particles reduce fretting wear on the hinge pin."}],"6":[{"alloy":"AA5182-O","spec":"UTS ≥ 275 MPa; YS ≥ 130 MPa; A80 ≥ 24 %; fatigue endurance ≥ 150 MPa","why":"5182-O LDR ≈ 2.5 (warm forming) for door-inner bowl depths; non-heat-treatable means < 5 % HAZ strength drop at MIG weld."}]}},"L5-MBA":{"l4":[3,4,5],"l3":[3,4,5,6],"chips":{"3":[{"sub":"Armoured-vehicle hull frame / structural rail","fab":"Hot extrusion + H116 strain-hardening; CNC cut-to-length; MIG-welded hull assembly","suf":"Wash-primer + CARC paint per MIL-DTL-53072","oem":"BAE CV90 hull frame; GDLS Stryker ICV; AM General HMMWV; Patria AMV"},{"sub":"Missile body structural shell / stringer tube","fab":"Hot extrusion + cold draw + T6 ageing; thin-wall round tube with integral stringer feature","suf":"Chromic acid anodise + alkyd paint; some wrapped in CFRP over-sleeve","oem":"Raytheon Tomahawk BGM-109; Lockheed JASSM AGM-158; MBDA Storm Shadow"}],"4":[{"sub":"Armoured-vehicle road wheel (light-alloy variant)","fab":"Sand casting or LPDC + T6 ageing; CNC machined bearing bore; dynamically balanced","suf":"Phosphate wash + CARC paint per MIL-DTL-53072","oem":"BAE CV90 (Al-wheel variants); AM General HMMWV light-alloy wheel; weight-critical IFV variants"},{"sub":"Missile nose-cone / ogive structural frame forging","fab":"Closed-die forging + T852 over-age; precision finish-machine to near-net ogive; NDT","suf":"Chemical-film Alodine + primer + radar-absorbing material bonded","oem":"Raytheon AIM-120 AMRAAM nose dome; Northrop AGM-88E HARM; MBDA Meteor"}],"5":[{"sub":"Missile guidance / seeker-section cylindrical body","fab":"CNC turning + milling from rolled plate or forged billet; optics-bore precision-grind","suf":"Type III hardcoat 50 µm black per MIL-A-8625F","oem":"Raytheon AIM-120 AMRAAM; Lockheed AGM-158 JASSM guidance section; Northrop AGM-88 HARM"},{"sub":"Armoured-vehicle periscope / sight mounting bracket","fab":"3-axis CNC from rolled plate; optical bench dowel-pin holes; chemical-film treat","suf":"MIL-DTL-5541 Class 3 chemical-film (Alodine) + military primer","oem":"BAE Systems CITV bracket; GDLS Abrams sight bracket; Elbit FLIR; L3Harris WESCAM MX-series"}]},"l3cards":{"3":[{"alloy":"6061-T6","spec":"UTS ≥ 310 MPa; YS ≥ 276 MPa; CTE 23.6 µm/m·K; ΔL < 0.02 mm over −40/+71 °C range","why":"6061-T6 provides optimal dimensional stability/cost balance for sight-bracket optical alignment across MIL-STD-810 thermal range; well-characterised CTE allows pre-correction of optical offsets."}],"4":[{"alloy":"7075-T6","spec":"UTS ≥ 572 MPa; YS ≥ 503 MPa; column buckling Pcr at L/r=50 ≥ 250 MPa; density 2.81 g/cm³","why":"7075-T6 delivers specific strength for 1.0–2.0 m missile body sections under flight loads from Mach 0.65 cruise — at half the weight of equivalent steel with aluminium's thermal-management advantage at Mach < 0.9."},{"alloy":"2219-T852","spec":"UTS ≥ 414 MPa at RT; YS retains ≥ 275 MPa at 200 °C; operating range −269 °C to 315 °C per AMS 4117","why":"2219-T852 is the only standard wrought Al alloy combining weldability and strength retention to 315 °C — essential for supersonic missiles where aerothermal heating would degrade 7075 (strength drops ~30 % at 150 °C). Also the industry standard for LH₂/LOX cryogenic rocket tanks."},{"alloy":"7075-T651","spec":"UTS ≥ 572 MPa; YS ≥ 503 MPa; concentricity tolerance ±0.025 mm; hardcoat 50 µm; non-ferromagnetic","why":"7075-T651 combines bearing strength at seeker-bracket attachment points with machinability to optical-grade concentricity tolerances — critical for INS/GPS seeker alignment in precision-guided munitions."}],"5":[{"alloy":"A356-T6","spec":"UTS ≥ 290 MPa; YS ≥ 200 MPa per AMS 4218; mass saving ≥ 35 % vs equivalent steel wheel","why":"A356-T6 delivers the bearing-fatigue life for military wheel loading at controlled production cost; LPDC + T6 avoids the porosity risk of sand-cast steel during rough-terrain service."}],"6":[{"alloy":"5083-H116","spec":"UTS ≥ 305 MPa; YS ≥ 215 MPa per MIL-DTL-46027K; elongation ≥ 10 %; V50 ballistic limit per MIL-STD-662F","why":"5083-H116 is the only wrought Al alloy fully qualified to MIL-DTL-46027K for weldable vehicle armour — its high Mg (4.0–4.9 %) delivers ballistic limit (V50) within 85 % of RHA steel at 1/3 areal density."}]}},"L5-MIH":{"l4":[5,6,7,8],"l3":[0,3,6],"chips":{"5":[{"sub":"MRI gradient-coil former / bore tube","fab":"CNC turning + boring from plate or forged billet; precision cylindrical bore grinding","suf":"Bead-blast + Type II anodise 8–12 µm; non-reflective","oem":"Siemens Magnetom Flow (60 cm bore, 1.5 T); GE SIGNA Architect; Philips Ingenia; Canon Vantage"},{"sub":"CT scanner gantry structural ring / slip-ring housing","fab":"5-axis CNC from thick rolled plate; annular form precision-bored; slip-ring seat ground","suf":"Bead-blast + Alodine (MIL-DTL-5541 Cl 3) for corrosion protection + conductivity","oem":"Siemens Somatom Force; GE Revolution CT; Canon Aquilion PRIME; Philips Spectral CT"}],"6":[{"sub":"MRI patient-bore outer cosmetic housing panel","fab":"Roll-form / stretch-form on large-radius tool + powder-coat; snap-fit or screwed to gantry","suf":"Powder coat RAL 9010 medical white; antimicrobial top-coat optional; MIL-STD-810G-cleanable","oem":"Siemens Healthineers Magnetom; GE SIGNA; Philips Ingenia; Canon Vantage"},{"sub":"CT scanner outer gantry cover panel","fab":"Stamp / roll-form + snap-fit or screw-mount to gantry frame; access-panel with hinges","suf":"Powder coat RAL 9010 white; hospital-grade surface","oem":"Siemens Somatom Definition; GE Revolution Frontier; Canon Aquilion PRIME SP"}],"7":[{"sub":"MRI bore RF-coil shield foil (between gradient coil and RF coil body)","fab":"Foil rolling to 25 µm + sandwich lamination between fibreglass layers + cast in epoxy cylindrical former","suf":"As-rolled aluminium; no anodise (must remain electrically conductive); fibreglass + epoxy laminate encapsulates","oem":"Siemens Magnetom bore RF coil (US Pat 5,304,932 embodiment); GE SIGNA RF body coil; Philips Ingenia dStream"},{"sub":"MR-shielded room foil-laminate panel (Al-based alternative to copper sheet)","fab":"Al foil + polyester-scrim reinforcement laminate roll; site-applied with 50 mm overlap seams; conductive bonding","suf":"Bare foil; seams bonded with Al-filled conductive adhesive; polyester-scrim backing","oem":"MR-scanner shielded rooms at clinics and mobile MR trailer installations (niche — copper standard for Tier-1 hospitals)"}],"8":[{"sub":"Hard-anodised MRI patient-cradle / inner-bore guide rail","fab":"CNC extrusion + machining + Type III hardcoat (MIL-A-8625F Class 1); colour-sealed","suf":"Type III hardcoat 25–50 µm black; MR-compatible (non-ferromagnetic)","oem":"Siemens Magnetom patient cradle rail; GE SIGNA guide track; Philips Ingenia table rail"},{"sub":"Chemical-film (Alodine) treated internal imaging-system structural bracket","fab":"CNC machining + immersion MIL-DTL-5541 Class 3 (or trivalent RoHS-compliant SurTec 650)","suf":"Yellow chromate (Class 1A, legacy) or trivalent SurTec 650 (RoHS); primer optional","oem":"Siemens Somatom internal chassis bracket; GE Revolution coil-mount bracket; Philips CT structure"}]},"l3cards":{"0":[{"alloy":"AA1050 / AA1100 (≥ 99.5 % Al, high-purity 1xxx)","spec":"Foil ≈ 25 µm; skin depth at 64 MHz ≈ 11 µm → twin layers give 4–5× skin-depth RF shielding; IACS conductivity ≥ 59 %","why":"High-purity Al provides sufficient RF shielding at Larmor frequency while its lower conductivity at gradient frequencies (50–100 kHz) limits B₀-distorting eddy currents — a trade-off copper foil fails (too conductive at gradient frequencies)."},{"alloy":"Proprietary Al-based foil ~1050/1100 class (48 µm, Holland Shielding 'Amucor')","spec":"Foil 48 µm; E-field attenuation 80–100 dB at 100 MHz; installed cost ~70 % of equivalent copper-panel room","why":"48 µm Al foil laminate matches the ETS-Lindgren 100 dB guideline for MR rooms at 70 % lower installed cost than copper sheet — viable for smaller clinical budgets."}],"3":[{"alloy":"6061-T6 (or 5083-H111 where extreme low-magnetic susceptibility required)","spec":"Magnetic susceptibility χ ≈ +20 × 10⁻⁶ (paramagnetic, non-disturbing); YS ≥ 276 MPa; bore tolerance ±0.05 mm over 1.8 m","why":"6061-T6 is non-ferromagnetic (unlike steel — which distorts magnet field) and machines to ±0.05 mm bore tolerances for patient comfort and RF coil coupling. 5083 used for 7 T research systems requiring slightly lower susceptibility."},{"alloy":"6061-T6","spec":"E = 68.9 GPa; YS ≥ 276 MPa; CTE 23.6 µm/m·K; radial runout < 0.1 mm at 1.8 m OD during 4 rev/s rotation","why":"6061-T6 prevents gantry resonance at high-speed rotation (up to 4 rev/s) — steel adds > 200 kg to unsprung rotating mass, requiring complete gantry-bearing redesign."}],"6":[{"alloy":"AA5052-H32","spec":"UTS ≥ 230 MPa; YS ≥ 195 MPa; bend radius 1.5 t; chemical resistance to IPA/H₂O₂ wipes > 1,000 cycles","why":"5052-H32 stretch-forms without springback issues on ≥ 500 mm radii of MRI bore covers; Mg-Cr chemistry gives passive-film stability against quaternary-ammonium hospital disinfectants."}]}},"L5-PPK":{"l4":[6,7,8],"l3":[2,3,6],"chips":{"6":[{"sub":"Ampoule / vial aluminium crimp cap (tear-off seal)","fab":"Cold roll coil → stamp/draw crimp cap on progressive die; score-line for tear-off","suf":"Bare polished aluminium; optional colour lacquer for product identification","oem":"Every glass vial/ampoule globally — COVID-19 vaccines (Pfizer/BioNTech, Moderna), insulin (Novo Nordisk, Sanofi), biologics (Roche, AbbVie)"},{"sub":"Cold-formed blister card backboard (Alu-Alu base layer — heavier gauge)","fab":"Cold roll to 45–60 µm + lamination into OPA/Al/PVC tri-laminate on roll-to-roll line","suf":"Conversion coat + heat-seal lacquer on PVC inner side; flexo print on OPA outer","oem":"Moisture-sensitive oral solids — PPIs (AstraZeneca Nexium), beta-lactams (GSK), hormones (Pfizer, Bayer)"}],"7":[{"sub":"Push-through blister lidding foil (pharmaceutical primary packaging)","fab":"Cold rolling to 20–25 µm + heat-seal lacquer (4–8 gsm) + flexo print on coil-to-coil line","suf":"Coil-applied heat-seal lacquer (PVC or acrylic) on sealing side; reverse-side primer + flexo print","oem":"Every push-through blister pack globally — Pfizer Lipitor; GSK Panadol; Sanofi aspirin; Cipla generics"},{"sub":"Cold-form Alu-Alu blister foil (OPA/Al/PVC laminate — moisture-sensitive drugs)","fab":"Cold roll to 45–60 µm + 3-layer lamination (OPA + Al + PVC) on roll-to-roll line","suf":"OPA outer + PVC inner heat-seal; flexo printed outer","oem":"Moisture-sensitive drugs — PPIs (AstraZeneca, Abbott), beta-lactam antibiotics (GSK, Sandoz), oncology (Pfizer, Roche)"},{"sub":"Pharmaceutical strip-pack / sachet lidding foil (unit-dose oral solids)","fab":"Cold rolling to 9–15 µm + heat-seal lacquer + optional print primer on coil-to-coil line","suf":"Heat-seal lacquer 4–6 gsm sealing side; ink-primer on outer side","oem":"WHO Oral Rehydration Salts; Pfizer strip-pack antibiotics; Cipla antiretrovirals; Reddy's generic strip packs"}],"8":[{"sub":"Anodised aluminium MDI / inhaler can (impact-extruded + anodised)","fab":"Back-impact extrusion from slug → can body → clear Type II anodise outside + internal epoxy-phenolic lining","suf":"Clear Type II anodise (5–10 µm) exterior; epoxy-phenolic lining 5–8 µm interior (FDA 21 CFR 175.300)","oem":"GSK Ventolin MDI; Teva ProAir HFA; AstraZeneca Symbicort; Cipla Seretide-generic; Glenmark MDI"}]},"l3cards":{"2":[{"alloy":"AA8011-H18 (most common) or AA1235-H18","spec":"Gauge 20–25 µm; pinholes < 5/m²; UTS ≥ 110 MPa; heat-seal peel 2.0–4.0 N/15 mm; OTR < 0.1 cm³/m²/day","why":"AA8011-H18 at 20 µm provides the minimum thickness for a pinhole-free barrier — at higher purity (1235), production cost rises; at lower purity, pinhole density exceeds pharmacopoeial limits."},{"alloy":"AA8021-O","spec":"Gauge 45 µm (light) or 60 µm (heavy); WVTR < 0.5 g/m²/day at 38 °C/90 % RH; cavity depth to 6 mm rupture-free; OTR < 0.01 cm³/m²/day","why":"AA8021-O is the only cold-form alloy combining elongation for 6 mm cavity and Uhlmann/Romaco line speeds — AA8011-O fractures at 4 mm cavity at production speeds, requiring slower machines and higher scrap."},{"alloy":"AA1235-O or AA8011-O","spec":"Gauge 9–15 µm; pinholes < 5/m²; UTS ≥ 65 MPa (O temper); heat-seal 180–200 °C × 0.5 s; WVTR < 1.0 g/m²/day","why":"1235/8011-O at 9–15 µm provides cost-effective moisture barrier for strip packs in developing-world markets — O-temper heat-seals cleanly without springback on low-cost form-fill-seal machines."}],"3":[{"alloy":"AA1050-H14 (impact extrusion grade)","spec":"Wall 0.3–0.4 mm; burst pressure ≥ 1.8 MPa per ISO 11608-3; anodise 5–10 µm; epoxy-phenolic 5–8 µm; propellant compatibility pH 4–7","why":"AA1050's high purity (≥ 99.5 %) enables uniform impact extrusion to 0.3 mm walls; internal epoxy-phenolic lining provides inert drug-contact surface preventing Al ion leaching into HFA propellant (USP limit 10 ppm Al in MDI formulation)."}],"6":[{"alloy":"AA1100-H14 or AA8011-H14","spec":"UTS ≥ 110 MPa; YS ≥ 95 MPa; elongation ≥ 8 %; gauge 0.20–0.25 mm; crimp-force consistency ±5 % lot-to-lot","why":"High-purity 1xxx/8xxx at 0.20 mm gauge draws into crimp-cap geometry without tearing at the score line and without releasing Fe/Cu/Mn contaminants that catalyse drug degradation."},{"alloy":"AA8021-O","spec":"Gauge 45 µm standard / 60 µm heavy; elongation ≥ 18 % (AA8021-O); WVTR < 0.5 g/m²/day at 38 °C/90 % RH; cavity depth to 6 mm","why":"AA8021-O provides elongation ≥ 18 % for 6 mm cold-form cavity depth at commercial Romaco/Uhlmann line speeds — AA8011-O fractures at 4 mm cavity depth at production speeds."}]}},"L5-SID":{"l4":[5,6,7,8],"l3":[2,3,6],"chips":{"5":[{"sub":"Aluminium surgical instrument handle / body (scissors, retractors, specula)","fab":"CNC turning + milling + knurling; ergonomic 3D handle; Type III hardcoat","suf":"Type III hardcoat 40–60 µm per MIL-A-8625F; black or natural silver; sealed for autoclave","oem":"Aesculap (B. Braun) retractors/specula; Stryker surgical handles; Integra LifeSciences; Karl Storz"},{"sub":"Medical device outer housing (MRI-compatible portable device)","fab":"CNC milling of billet + Type II anodise; tolerance features for PCB standoffs + display window","suf":"Type II anodise 8–12 µm; medical white or dove grey","oem":"Stryker AdaptIV infusion pump; Medtronic patient monitor; Philips IntelliVue portable; GE Carescape"},{"sub":"Orthopaedic surgical instrument tray with machined pockets","fab":"CNC milling of sheet/plate + pocket array + Type II anodise; autoclave-grade","suf":"Type II anodise 8–15 µm; optional colour-code anodise; laser-etched instrument ID","oem":"DePuy Synthes PFNA tray; Stryker Gamma-3 instrument set; Smith+Nephew TRIGEN; Zimmer Biomet"}],"6":[{"sub":"Surgical instrument sterilisation tray / SterilContainer body","fab":"Sheet stamping + deep-draw of tray body + perforated lid; clear Type II anodise","suf":"Type II clear anodise 8–15 µm per MIL-A-8625F; filter-membrane lid insert for steam penetration","oem":"Aesculap SterilContainer JK/JN/JM series (B. Braun); STERIS Genesis; Healthmark (Getinge)"},{"sub":"Medical device outer housing panel (defibrillator, ultrasound, infusion pump)","fab":"Stamp / press-brake bend + clear anodise; snap-fit or screw assembly; gasket channel","suf":"Clear anodise 8–12 µm + optional colour dye; hospital-grade chemical resistance","oem":"Philips HeartStart defibrillator; GE Vivid ultrasound probe; Baxter Spectrum pump; B. Braun pumps"}],"7":[{"sub":"Aluminium-laminate sterile-barrier pouch for moisture-sensitive single-use devices","fab":"Foil lamination (Al + nylon + PE) + heat-seal to Tyvek 1059B breathing patch; dual-chamber pouch","suf":"Al-foil + nylon-PA12 + PE heat-seal laminate; Tyvek patch for EtO/gamma sterilisation gas ingress","oem":"Boston Scientific drug-coated coronary stents; DePuy Synthes Cobalt bone-cement powder; Stryker biologics desiccant kit"}],"8":[{"sub":"Type III hard-anodised surgical instrument handle (wear-resistant, autoclave-grade)","fab":"CNC finish + Type III hardcoat per MIL-A-8625F Class 1 at 25–50 µm; Teflon or DI water seal","suf":"Type III hardcoat 25–50 µm; optionally colour-dyed per instrument-set ID; Teflon seal","oem":"Aesculap (B. Braun) retractor handles; Stryker laparoscopic handles; Karl Storz endoscope bodies"},{"sub":"Type II clear-anodised medical device enclosure","fab":"CNC or press-brake + Type II sulphuric anodise 8–12 µm; dye and seal","suf":"Clear Type II anodise 8–12 µm; optional medical colour dye; sealed","oem":"Philips IntelliVue patient monitor; GE Carescape vital-signs; ResMed AirSense CPAP; Getinge disinfector"},{"sub":"Electropolished aluminium component (cleanroom/sterile-compounding grade)","fab":"CNC machining + electrolytic polish (H₃PO₄/H₂SO₄ bath); Ra < 0.4 µm; clean-pack","suf":"Electropolished Ra < 0.4 µm; no anodise (anodise adds surface roughness in pores)","oem":"Drug-compounding robot parts (Stäubli, Universal Robots pharma); hospital pharmacy automation; MRI-compatible surgical robot components"}]},"l3cards":{"2":[{"alloy":"AA8021 / AA8079 (laminate-grade, ≈ 17.8 µm / 70 ga)","spec":"Al foil ≈ 17.8 µm (70 gauge); WVTR < 0.05 g/m²/day at 38 °C/90 % RH per ISO 11607; peel strength 1.5–3.0 N/15 mm","why":"Al foil laminate in dual-chamber pouch provides WVTR < 0.05 g/m²/day — 50× lower than Tyvek/PET alone — essential for drug-coated stents (e.g. sirolimus degrades above 3 % RH) while Tyvek breathing patch allows sterilisation gas ingress."}],"3":[{"alloy":"6061-T6","spec":"Hardcoat 40–60 µm; Vickers HV ≥ 400; UTS ≥ 310 MPa; autoclave 134 °C × 18 min × ≥ 500 cycles without dimensional change","why":"Hard-anodised 6061-T6 resists 134 °C steam autoclave indefinitely — stainless 316L survives equally but weighs 3× more, fatiguing surgeons during long procedures. Hardcoat provides wear resistance at instrument hinge equivalent to 60 HRC without magnetism."},{"alloy":"6061-T6 (or 7075-T6 for high-wear instrument joints)","spec":"Hardcoat 25–50 µm; Vickers HV ≥ 400; abrasion < 4 mg/1,000 cycles (Taber CS-17); autoclave 134 °C × ≥ 500 cycles; non-magnetic","why":"Type III hardcoat provides wear resistance equivalent to 60 HRC steel at 1/3 the weight. Colour-coding enables set identification and CSSD tracking under RFID programmes."},{"alloy":"6061-T6 (machined) or AA5052-H32 (sheet)","spec":"Anodise 8–12 µm; salt-spray ≥ 336 h per ASTM B117; dielectric strength ≥ 30 V/µm; colour delta-E < 2 after 5,000 IPA wipe cycles","why":"Type II anodise provides a durable, dyeable surface that resists IPA/QAC hospital disinfectants — powder-coat chips on drop tests (IEC 60068-2-27) and is less acceptable than anodise at medical product design approval."}],"6":[{"alloy":"AA5052-H32","spec":"UTS ≥ 230 MPa; YS ≥ 195 MPa; autoclave 134 °C × 18 min × ≥ 1,000 cycles; assembled set ≤ 11.3 kg (AAMI 25 lb); anodise 8–15 µm","why":"5052-H32 deep-draws complex tray geometry, resists chloride pitting from steam condensate, and at 2.68 g/cm³ keeps assembled tray within AAMI ergonomic limit — documented competitive differentiator for Aesculap SterilContainer."}]}},"L5-SPS":{"l4":[0,1,2,5,6],"l3":[0,1,3,4,5,6],"chips":{"0":[{"sub":"Sputtered Al-Cu front-side die metallization on power MOSFET / IGBT / discrete diode wafers","fab":"DC magnetron sputtering (PVD) from Al-0.5Cu target; 3–8 µm deposited in single PVD pass; Ti/TiN barrier layers by separate steps","suf":"Native self-limiting Al₂O₃ — the intended metallurgical surface for wire bonding; no additional treatment","oem":"Infineon IGBT4-class modules (Dresden/Kulim), ON Semi automotive MOSFETs (East Fishkill), STMicroelectronics discrete power (Catania)"},{"sub":"Sputtered AlScN piezoelectric film for BAW / FBAR 5G RF filter resonators","fab":"Reactive DC magnetron sputtering from Al-Sc alloy target in N₂/Ar atmosphere; 300–650 nm deposited; wafer temperature 200–400 °C","suf":"Mo or W bottom/top electrode metal stack; no additional treatment of the AlScN film itself","oem":"Broadcom FBAR 5G filters (n77/n78), Qorvo BAW filters, Skyworks 5G FEM, Apple in-house 5G BAW — all via TSMC/WIN Semiconductors foundry"}],"1":[{"sub":"IGBT power module baseplate (monolithic)","fab":"Pressureless liquid-metal infiltration of SiC preform; net-shape cast (CPS QuickCast process)","suf":"Electroless Ni plate (standard); Ni/Au plate (hermetic grade)","oem":"Infineon HybridPACK Drive, Mitsubishi NX-series IGBT, Hitachi-ABB traction inverters, ABB BORDLINE rail converters"},{"sub":"Flip-chip lid / integrated heat spreader (IHS) for FCBGA / FCLGA on ceramic substrate","fab":"Net-shape cast via CPS QuickCast/QuickSet pressureless infiltration; precision-ground to flatness; electroless Ni or Ni/Au plate","suf":"Electroless Ni (standard); Ni/Au (hermetic/bondable); hermeticity <10⁻⁹ atm-cm³/s He","oem":"IBM POWER10 server modules, AMD/Xilinx UltraScale+ FPGA on ceramic, Cisco/Juniper network ASICs, military/satellite SoCs"},{"sub":"Pin-fin AlSiC-9 baseplate for direct-liquid-cooled power module","fab":"Pressureless infiltration (same as Row 1); pin-fin array cast integrally — eliminates TIM resistance of bolted-on cooler","suf":"Electroless Ni plate (standard); Ni/Au for hermetic applications","oem":"Rail-traction IGBT modules (ABB, Hitachi, Siemens Mobility), aerospace power converters, emerging SiC traction inverters"},{"sub":"Aluminium-graphite MMC heat-spreader lid for HPC processor / power module","fab":"Hot-pressing or liquid infiltration of oriented graphite-flake preform with Al alloy matrix; precision-ground to flatness","suf":"Ni/Au metallisation for solder attach; or TIM-direct bonding","oem":"High-power radar ASICs, satellite electronics packages, military RF power amplifiers; limited commercial HPC use"}],"2":[{"sub":"Heavy aluminium wedge-bond wire (power die-to-substrate interconnect)","fab":"Continuous casting then multi-pass cold drawing; soft-annealed to target hardness","suf":"None (bare Al); Ni-doped surface for Al-H11 CR automotive grade","oem":"Infineon IGBT4 modules, ON Semi automotive MOSFETs, Semikron-Danfoss inverters, Wolfspeed SiC modules"},{"sub":"Fine aluminium wedge-bond wire (signal IC, automotive, MEMS, chip-on-board)","fab":"Continuous casting + multi-pass drawing; 1% Si alloyed during casting to saturate Si solubility; three hardness grades","suf":"None (bare Al-Si alloy)","oem":"Automotive sensor ICs (Bosch, Continental, Sensata), CMOS image sensors (Sony, Samsung), MEMS accelerometers, COB LED modules"},{"sub":"Aluminium bond ribbon (heavy ribbon, wedge-bonded) for power semiconductor interconnect","fab":"Cold-rolled from 4N/5N Al billet to target thickness; precision-slit to target width; spooled; bonded with wedge tool (same bonder as round wire, different tool head)","suf":"None (bare high-purity Al)","oem":"Infineon XHP SiC power modules, Wolfspeed C3M SiC modules, power IGBTs for rail traction, WBG power modules"},{"sub":"Aluminium-clad copper composite bond wire (Heraeus CucorAl Plus)","fab":"Co-extrusion / cladding of Cu core and Al shell; multi-pass drawing to target diameter; annealed for target hardness","suf":"Al shell natural oxide — bonds to Al die metallization as standard Al wire; no additional surface treatment","oem":"Automotive SiC traction inverters (BMW, Mercedes, Stellantis), automotive IGBTs, battery-pack interconnects (18650 and prismatic cells)"}],"5":[{"sub":"Vacuum wafer chuck plate (handler / inspection / probe stage)","fab":"3- to 5-axis CNC milling of plate billet; surface grinding of wafer-contact face; EDM drilling of vacuum manifold and lift-pin holes; lapping to final flatness","suf":"Hard-coat anodize (Type III, 25–50 µm); or electroless nickel plate for chemical resistance","oem":"TEL P-12XL wafer prober, Accretech UF3000, KLA inspection tools, Onto Innovation, Cohu handlers, Advantest handlers"},{"sub":"Probe-card stiffener / interface frame (wafer-level IC test)","fab":"CNC milling from rolled plate; jig-bored alignment-pin holes; wire-EDM of internal arms / slots; hard anodize","suf":"Hard anodize (Type III) for wear / insulation; some thermal-probe variants left bare for conductivity","oem":"FormFactor (Cascade) Pyramid probe cards, MJC AP3000, Teradyne Tiger and J750 probe-card holders (Knight Auto stiffener product line)"},{"sub":"IC test-socket body / handler nest insert","fab":"CNC milling of billet; micro-drilling of contact-pin hole pattern (±12 µm on pin pattern, ±5 µm on device-lead pitch reference); wire-EDM of DUT pocket; hard anodize","suf":"Hard anodize (Type III) — default per standard industry practice; ESD-dissipative anodize; nickel plate where electrical isolation is required","oem":"Cohu, Advantest, Seiko Epson, Exatron handlers; Smiths Interconnect (Levan, Celsius sockets), Robson Technologies RTI, Signal Integrity Inc. — used for AI ASIC final-test sockets (NVIDIA, AMD, Intel)"}],"6":[{"sub":"Aluminium-core insulated metal substrate (IMS / MCPCB) for LED and power-module packaging","fab":"Lamination of Cu foil + dielectric prepreg + Al base plate; hot-press bond; standard PCB etching of Cu circuit layer; singulated by CNC routing","suf":"HASL or ENIG on Cu circuit side; bare Al or anodized on back side","oem":"Cree/Wolfspeed LED COB modules, Infineon IPM substrates, automotive DC-DC converter boards (Bosch, Continental)"}]},"l3cards":{"0":[{"alloy":"99.99% (4N) or 99.999% (5N) Al; Ni-doped variant 'Al-H11 CR' (Heraeus) for automotive","spec":"Ø 125–500 µm; TC ~230 W/m·K; IACS conductivity 64.0% @ 20 °C; CTE 25.3 ×10⁻⁶/K; UTS 80 MPa as-drawn; elongation 40%","why":"5N Al is soft enough to bond ultrasonically over active MOSFET/IGBT cells without cracking silicon — Cu wire requires far higher force and risks die damage. Per Infineon patent US 8,541,892, high-purity Al is specified for bonding above active cell regions. Al-on-Al bonding avoids the gold-aluminium 'purple plague' intermetallic."},{"alloy":"Al-0.5 wt% Cu (typical stack Ti / TiN / AlCu / TiN); Al-1%Si-0.5%Cu for spiking-prone geometries","spec":"Sputtered thickness 3–8 µm (canonical 4 µm; ~5 µm typical for IGBT/MOSFET); Cu content 0.5 wt%; resistivity ~3.3 µΩ·cm as alloyed Al(Cu)","why":"0.5 wt% Cu segregates to grain boundaries and suppresses electromigration (MTTF ×~10 vs pure Al). Al-Cu adheres to Si/SiO₂, forms a self-limiting native oxide, and can be wet/dry-etched — keeping power-die front-side metal Al-Cu long after logic BEOL switched to Cu damascene."},{"alloy":"99.99% (4N) or 99.999% (5N) pure Al; rolled/coined ribbon stock","spec":"Cross-section 1.0 mm × 100 µm to 2 mm × 300 µm; 1 × 1.2 mm ribbon = volumetric equivalent of four 0.3 mm round wires; 8 × 125 µm wires replaced by 1 × 1 mm × 100 µm ribbon","why":"A continuous bond footprint spreads current and heat over a larger pad area, avoiding the spot-current crowding that drives heel cracking in multi-wire wedge bonds."},{"alloy":"≥99.99% Cu core / ≥99.99% Al shell, ~45/55 cross-section ratio (Heraeus CucorAl Plus)","spec":"Ø 200–500 µm; Cu core 45–55% of cross-section area; rated to 200 °C continuous; ~+20% ampacity vs equivalent-diameter pure-Al wire","why":"The Al shell preserves compatibility with existing Al die-pad metallization and conventional Al-wedge bonders, while the Cu core delivers most of the current-carrying and thermal benefit of pure-Cu wire — without forcing the chip-metallization change that Infineon's IGBT5 .XT required."},{"alloy":"Al₁₋ₓScₓN, x = 0.20–0.43 production (Materion); deposited from pre-alloyed Al-Sc target in N₂/Ar reactive atmosphere","spec":"At 35 at% Sc: Keff² ≈15.5% vs 6% for AlN; max relative filter bandwidth 7.0% vs 2.4% for AlN; BAW film thickness 380–485 nm in production; Q >1,500","why":"Adding Sc to AlN compensates the wurtzite lattice distortion, more than doubling the piezoelectric coefficient d33 and Keff² — essential for 5G bands' wider relative bandwidth (≥7%). Pre-alloyed Al-Sc targets give order-of-magnitude better on-wafer composition uniformity than co-sputtering two separate cathodes."}],"1":[{"alloy":"Al-1%Si (AlSi1; Heraeus 'AlW-29S')","spec":"Ø 17–75 µm; ribbon ≤75 µm thick; Si content 1.0 wt% (saturates Al solubility ~0.5% at process temperatures); bonds at room temperature","why":"1 wt% Si saturates the wire against Si dissolution at the die bond pad — pure Al would draw Si from the die surface ('Al spiking') degrading the bond. Al-Si wedge bonds avoid the gold-aluminium 'purple plague' and bond at room temperature, protecting heat-sensitive MEMS/sensor dies."}],"3":[{"alloy":"AA6061-T6 (per AMS 4025 plate)","spec":"UTS 310 MPa; yield 276 MPa; thermal conductivity 167 W/m·K; CTE 23.6 µm/m·°C; chuck-face flatness ≤5 µm; thickness tolerance ±0.002 mm","why":"AA6061-T6 gives the best combination of machinability, hard-anodize quality, and thermal conductivity for vacuum-chuck applications. AA7075 anodizes poorly (mottled finish, lower dielectric strength) and is more prone to stress-corrosion cracking on coolant-wetted chuck-body surfaces."},{"alloy":"AA6061-T6 (default); AA7075-T6 for ultra-high-cycle handler kits","spec":"AA6061-T6: UTS 310 MPa; yield 276 MPa; pin-hole tolerance ±12 µm; lead-pitch reference ±5 µm; pocket flatness <10 µm; hard-anodize hardness ~60–65 HRC equivalent","why":"6061-T6 holds tight CNC tolerances after machining without the residual-stress warp of 7075 and accepts uniform Type-III hard anodize — vital for >1 M-cycle socket life. PEEK is the only common alternative but lacks the heat-sink capability needed for high-power AI ASIC sockets dissipating tens of watts at the contactor."}],"4":[{"alloy":"AA7075-T651 (preferred for stiffness-critical frames); AA6061-T6 (cost variant)","spec":"AA7075-T651: yield 503 MPa; UTS 572 MPa; modulus 71.7 GPa; CTE 23.6 µm/m·°C; alignment-pin hole tolerance ±12 µm; planarity <5 µm across 300 mm probe area","why":"7075-T651 offers ~2× the yield of 6061-T6 at the same density, enabling a thinner stiffener to resist >50 N cumulative touchdown loads without sagging. T651 (stretched / stress-relieved) specifically is preferred over T6 because residual stress in T6 warps thin frames during finish milling."}],"5":[{"alloy":"AlSiC-9 (37 vol% Al-356 / 63 vol% SiC, electronic grade)","spec":"TC ≥180 W/m·K (typical 200 W/m·K @ 25 °C); CTE 8.0 ppm/°C (30–100 °C); density <3 g/cm³; Young's modulus 188 GPa; flexural strength 488 MPa","why":"AlSiC-9's 8 ppm/K CTE matches AlN/Si₃N₄ DBC substrates and Si die far better than Cu baseplates (17 ppm/K), eliminating the stress-compensation solder layer Cu requires and extending thermal-cycle life to tens of thousands of cycles. At ~1/3 the density of Cu it reduces module weight."},{"alloy":"AlSiC-9 (Ni or Ni/Au plated); AlSiC-12 variant (CTE ~12 ppm/°C) for organic FR-4 substrates","spec":"TC 170–200 W/m·K; AlSiC-9 CTE 8.0 ppm/°C; AlSiC-12 CTE ~12 ppm/°C; density ~3 g/cm³; Young's modulus 188 GPa","why":"For large-die high-power flip chips on ceramic substrates, a Cu lid (17 ppm/°C) bowing against a low-CTE ceramic and Si die (~3 ppm/°C) creates die-cracking and TIM-delamination stresses. AlSiC-9 splits the CTE difference; net-shape casting enables integral pin-fin geometry at lower cost than Cu/W or Cu/Mo."},{"alloy":"AlSiC-9 (37 vol% A356.2 Al / 63 vol% SiC), net-shape cast with integrated pin-fin array","spec":"TC 190 W/m·K typical (≥180 W/m·K min); CTE 8.00 ppm/°C (30–100 °C); density ~3.01 g/cm³; pin height 5–8 mm; hermeticity <10⁻⁹ atm·cm³/s He","why":"Pressureless infiltration lets the pin-fin array be cast in one piece, eliminating the TIM resistance of a bolted-on cooler. The 8 ppm/°C CTE sits between Si/SiC die (~3–4 ppm/°C) and Cu DBC top metal (17 ppm/°C), giving ~10× the thermomechanical fatigue life of monolithic Cu baseplates."},{"alloy":"Al-graphite flake MMC, ≥70 vol% graphite (RHP DiaCOOL class); liquid-infiltrated","spec":"In-plane TC 400–480 W/m·K (Han et al.: 482 W/m·K with 70 vol% graphite + Cu network + graphene); through-plane CTE ~2.5 ×10⁻⁶ K⁻¹; density 2.3–2.5 g/cm³","why":"Anisotropic graphite-flake structure delivers in-plane conductivity rivalling diamond at a fraction of the cost, while near-zero through-plane CTE eliminates solder fatigue stress vs Cu and AlSiC lids. Trade-off: complex pressing/casting process means it competes only where in-plane spreading and low mass jointly justify the premium."}],"6":[{"alloy":"AA5052-H32 or AA6061-T6 Al base (Bergquist Thermal Clad standard); AA1100 by some generic MCPCB makers","spec":"Al base 0.8–2.0 mm; dielectric TC 1.1–7.5 W/m·K (Bergquist family); dielectric 38–225 µm; breakdown voltage up to 8.5 kV AC","why":"Cheaper than AlN-DBC by 5–10× while delivering thermal resistance only 3–5× worse — adequate for LED packages and sub-1 kW DC-DC modules. 5052/6061 offer better stamping processability than 1100; 5052's Mg content improves CTE-mismatch tolerance vs the polymer dielectric."}]}},"L5-SPT":{"l4":[0,5],"l3":[0,3],"chips":{"0":[{"sub":"5N (99.999%) Al planar 300 mm sputtering target — IC interconnect / BEOL metallization","fab":"Three-layer electrolysis or zone refining to 5N; cast to billet; hot-worked + annealed for recrystallisation; machined to disc; bonded to Cu or SS backing plate","suf":"Precision-ground to Ra <0.8 µm; clean-room packaged; indium or diffusion bonded to backing plate","oem":"TSMC 28–90 nm Al BEOL lines, GlobalFoundries mature-node fabs, Intel legacy Al-interconnect lines, Samsung/SK Hynix mature-node memory fabs"},{"sub":"5N5 (99.9995%) Al sputtering target — advanced ICs + flat-panel display backplane","fab":"Same as 5N but tighter impurity control during electrolysis; spray-formed to large-format rectangular billets for Gen 8.5/10.5 display fabs; machined/sawn to panel dimensions","suf":"Precision-ground; ultrasonic-cleaned; clean-room bagged; indium or In-Sn bonded for display formats","oem":"BOE Gen 10.5 fab (Hefei, CN), LG Display Guangzhou OLED fab, Samsung Display A4 fab (Asan, KR)"},{"sub":"6N (99.9999%) Al planar disc sputtering target — sub-28 nm logic / DRAM","fab":"Zone refining (multiple passes) or ultra-high-purity three-layer electrolysis; very low throughput (kg/day); machined to disc in ISO Class 5 cleanroom","suf":"Ultra-precision ground to Ra <0.4 µm; vacuum-sealed individual packaging; <1 particle/wafer defect density track record","oem":"Sub-28 nm CMOS logic test structures (TSMC, Samsung), advanced DRAM peripheral circuits (Samsung 1α/1β), R&D fabs"},{"sub":"Al-0.5wt%Cu planar disc sputtering target (200 / 300 mm) for mature-node interconnect","fab":"Vacuum induction melting of Al + Cu master alloy; cast to billet; hot-worked for uniform Cu distribution; annealed + machined to disc; single-crystal variant grown by Bridgman / Czochralski","suf":"Ground to Ra <0.8 µm; bonded; clean-room packaged","oem":"Infineon 200 mm power MOSFET/IGBT fab (Kulim MY, Dresden DE), ON Semi (East Fishkill NY), STMicroelectronics (Catania IT), X-Fab (Erfurt DE, Lubbock TX)"},{"sub":"Al-1wt%Si planar disc sputtering target — legacy bond-pad metallization","fab":"Al-Si ingot cast from Al + Si master alloy by induction melting; hot-worked; annealed for uniform Si particle distribution; machined to disc","suf":"Ground to Ra <1.0 µm; standard clean-room packaging","oem":"Legacy CMOS fabs ≥350 nm (Texas Instruments RFAB, NXP, Microchip — mature-node analog/mixed-signal), MEMS bond-pad metallization (STMicroelectronics, Bosch Sensortec)"},{"sub":"Al-1wt%Si-0.5wt%Cu ternary sputtering target","fab":"Ternary alloy VIM (vacuum induction melting) of Al + Si + Cu; hot-worked + annealed; machined; requires careful segregation control (Cu segregates on cooling)","suf":"Ground; clean-room packaged","oem":"Analog/mixed-signal CMOS fabs ≥130 nm (NXP, TI RFAB, Microchip, Renesas); BCD process fabs (STMicro, X-Fab, Dongbu HiTek) for automotive power management ICs"},{"sub":"Al-Sc alloy sputtering target (7–43 at% Sc) for AlScN piezoelectric film deposition","fab":"Vacuum induction melting of Al + Sc; hot isostatic pressing (HIP) or spark plasma sintering (SPS) for uniform Sc distribution; machined to disc; indium-bonded to Cu or Mo backing plate; low-O₂ processing essential","suf":"Ground to Ra <0.8 µm; vacuum-sealed packaging (Sc oxidises rapidly); stored under inert gas","oem":"Broadcom FBAR filter wafers (6\"/8\"), Qorvo BAW filter wafers, Skyworks 5G FEM — all via TSMC/WIN Semiconductors foundry"},{"sub":"Al-Nd alloy sputtering target — TFT-LCD / OLED backplane gate and source-drain wiring","fab":"Spray forming (Kobelco process) of Al + Nd melt to large-format billets; hot-worked; machined/sawn to Gen format; Al₁₁Nd₃ intermetallic formed on cooling must be controlled for machinability","suf":"Ground/milled to flatness; clean-room packaged; brazing for large-format display targets","oem":"BOE, LG Display, Samsung Display, AUO, Innolux — TFT-LCD and OLED backplane gate/source-drain wiring"},{"sub":"Rotary cylindrical aluminium sputtering target — large-area glass / display coating","fab":"Seamless Al tube extrusion from 3N–5N billet (monolithic); or thermal spray of Al powder onto stainless backing tube; machined to OD tolerance; endblock fittings for rotary seal","suf":"Precision-turned OD to Ra <1.6 µm; clean-room packaged; endblock threads/flanges to customer spec","oem":"AGC architectural coating lines, Guardian Glass, Saint-Gobain low-E glass; First Solar CdTe thin-film solar; LG Display Gen 10.5 panel lines"}],"5":[{"sub":"Precision-machined aluminium sputtering-target backing plate (diffusion or indium bonded)","fab":"Hot-forged and solution-treated 6061 billet; precision CNC turning + 5-axis milling of recess cavity and water-cooling channels; surface grinding of bonding face to Ra <1.6 µm; grit-blast to Ra 3 µm for diffusion-bond key; T6 aging concurrent with HIP diffusion bond","suf":"As-machined on water side (Ra 1.6 µm); spiral-channel + grit-blast (Ra 3 µm) on bond face; sometimes Ni-plate or sputtered Ni-V interlayer for difficult target metallurgies","oem":"Applied Materials Endura PVD, Lam Research, Tokyo Electron (TEL), ULVAC, Canon Anelva sputter chambers — across TSMC, Samsung, SK Hynix, Intel, Micron logic and memory fabs"},{"sub":"CNC-machined rotary-target endblock / mounting flange for rotary cylindrical magnetron cathode","fab":"CNC turning of 6061 / 7075 billet; jig-bore of bearing and seal pockets; deep-hole gun-drilled water passages; vacuum-seal-grade O-ring grooves milled; helium leak test 10⁻⁹ mbar·L/s","suf":"Bare machined on vacuum side; Type II anodize on atmospheric side; stainless steel inserts for sliding electrical contacts","oem":"Soleras Advanced Coatings, Sputtering Components Inc. (US 8,182,662 assignee), Applied Materials (architectural glass), AGC Plasma Technology Solutions"},{"sub":"Precision-machined PVD chamber shield / process-kit deposition liner","fab":"CNC spinning + milling of 6061 plate; twin-wire-arc thermal spray of pure Al (60–250 µm) to roughen deposit side; hard anodize (Type III) or yttria plasma-spray on plasma-facing surfaces","suf":"Hard anodize + grit-blast; or twin-wire-arc Al thermal spray on deposit side; plasma-sprayed Y₂O₃ for plasma-etch chambers; AlN / Al₂O₃ for highest-temperature process-kit","oem":"Applied Materials Endura / Centura / Producer PVD chambers, Lam Research Sentinel, TEL Telius, Varian / MRC legacy chambers — supplied by ASSET Solutions, Ultra Clean Holdings, Ichor Holdings"}]},"l3cards":{"0":[{"alloy":"99.999 wt% Al (5N), recrystallized; grain size <125 µm; grain orientation ≥35% (200); per US 6,835,251","spec":"Purity ≥99.999 wt%; grain size <125 µm; grain orientation ≥35% (200) with 5–35% each other orientations; recrystallization fraction ≥99%","why":"5N is the floor set by particulate-defect ppm at sub-65 nm nodes — transition-metal impurities above ~10 ppm nucleate hillocks and via voids. Tightly-controlled fine-grain texture per US 6,835,251 gives uniform sputter yield across the target life."},{"alloy":"99.9995 wt% Al (5N5); production grain size <230 µm at surface, <300 µm at half-thickness per US 11,618,942 (JX)","spec":"Purity 99.9995 wt%; impurity <5 ppm transition metals; available up to Gen 10.5 rectangular format (2,940×3,370 mm)","why":"5N5 is the sweet spot for large-area TFT-LCD / OLED panels — purer than 5N enough to suppress hillocking on long electrodes but cheaper than 6N at the kg-scale required for Gen 10.5 substrates."},{"alloy":"99.9999 wt% Al (6N); produced by zone refining or three-layer electrolysis; alkali/heavy-metal impurities <0.1 ppm","spec":"Purity ≥99.9999 wt%; alkali/heavy-metal impurities <0.1 ppm; available up to 300 mm planar","why":"At sub-28 nm logic and sub-15 nm DRAM half-pitch, even sub-ppm Na, K, Fe drive bit-line shorts and lifetime failures — 6N's order-of-magnitude impurity reduction vs 5N is the only way to meet >1 ppb device yield targets. Cost is ~3–5× 5N but offset by yield gain at the wafer."},{"alloy":"Al base 99.999%, Cu 0.5 wt%; single-crystal variant per US 5,988,262","spec":"Cu content 0.5 wt%; distribution uniformity ±5% (single-crystal variant); disc 6–25 mm thick; bonded to Cu or Mo backing plate","why":"The 0.5% Cu addition raises the activation energy of Al grain-boundary diffusion by ~0.2 eV, multiplying electromigration MTTF by ~10× — essential for fabs still running Al BEOL at ≥130 nm. Cross-refs Row 5 (this target produces the deposited film)."},{"alloy":"Al base 99.999%, Si 1.0 wt%","spec":"Si content 1.0 wt% (close to room-temperature solubility limit in Al); standard 200/300 mm planar; impurity floor 5N on Al base","why":"At sintering temperatures (~450 °C), pure Al rapidly dissolves Si from the underlying substrate ('Al spiking'), shorting shallow junctions. Pre-loading the deposited film with 1% Si suppresses dissolution by raising the Si chemical potential in the Al film."},{"alloy":"Al-1Si-0.5Cu ternary; bulk purity 99.99–99.999% on Al base","spec":"Si 1.0 wt%, Cu 0.5 wt%; 200/300 mm planar discs; composition control per US 5,118,661 to suppress segregation","why":"Captures both Si-spiking and electromigration benefits in a single sputtering step — preferred for high-density mature-node interconnect where adding a second sputter cathode is uneconomical. Trade-off: ternary composition uniformity across the target life is harder to control than binary variants."},{"alloy":"Al₁₋ₓScₓ, x = 0.07–0.43 production (Materion); R&D up to x = 0.50; 3N (99.9%) typical base purity","spec":"Sc 7–43 at% (production); 3N base purity, low O₂; production scale up to 18\" diameter; max d33 26.9–27.3 pC/N at 35–43 at% Sc","why":"Pre-alloyed Al-Sc target gives an order-of-magnitude better on-wafer composition uniformity than co-sputtering Al and Sc cathodes — essential for 5G BAW filter production requiring Keff² >15%."},{"alloy":"Al-2 to 3 wt% Nd (standard Al-3wt%Nd); Al₁₁Nd₃ intermetallic phase distributed in Al matrix","spec":"Nd 2–3 wt% (~0.4–0.6 at%); Al-Nd film resistivity ~3.5 µΩ·cm; thermal stability up to 350 °C","why":"Pure-Al wiring forms 1–3 µm hillocks during the 250–350 °C TFT process, shorting overlying ITO; Al₁₁Nd₃ precipitates pin grain boundaries and suppress hillock formation while keeping resistivity within 2× pure Al — cheaper than Mo or Cu wiring for long display electrodes."},{"alloy":"3N (99.9%) to 5N (99.999%) Al; 4N typical for architectural glass / display; monolithic tube or thermal-sprayed onto SS backing tube","spec":"OD 133–165 mm; wall 6–12 mm; lengths up to 4,000 mm (Materion); utilization 60–80% vs ~30–40% for planar","why":"Rotation prevents the donut-shaped erosion groove that limits planar utilization to ~30%, roughly doubling raw-material yield per kg of high-purity Al — important when 5N Al input costs $50–80/kg. Trade-off: rotaries need a more complex PVD cathode and rotary seal."}],"3":[{"alloy":"AA6061-T6 (industry standard per US 6,451,185); AA2024-T4 for some Cu / Ta targets where higher Cu content improves bond shear","spec":"AA6061-T6 UTS 310 MPa (45 ksi); hardness 95 HBN; Ti-to-6061-T6 diffusion-bond shear strength 16–23 ksi (110–158 MPa) at 21 °C and 17.7 ksi (122 MPa) at 200 °C (per US 6,451,185); electrical conductivity 46% IACS; thermal conductivity 167 W/m·K","why":"AA6061-T6 is standard because its precipitation hardening (Mg₂Si) can be developed during the HIP diffusion-bond cycle, letting the assembly emerge fully T6-tempered without a separate stress-relief step. Its 46% IACS electrical conductivity is high enough to carry sputter current to the cathode but low enough to limit eddy currents that would suppress magnetron field penetration."},{"alloy":"AA6061-T6 (housing, flange); AA7075-T6 for drive-shaft flange where torsional fatigue dominates","spec":"AA6061-T6 yield 276 MPa; UTS 310 MPa; electrical conductivity 46% IACS; CTE 23.6 µm/m·°C; concentricity ±25 µm; vacuum leak rate <10⁻⁹ mbar·L/s","why":"6061-T6 is conductive enough to carry sputter current (typical 600 V × 200 A) without significant resistive heating, yet light enough for the entire endblock to be flange-mounted to the chamber wall. Stainless would be stronger but resistive heating losses at operating current would require active cooling of the endblock body itself."},{"alloy":"AA6061-T6 (standard); AA1100 / 5N Al where the shield must match a high-purity Al target metallurgy to avoid cross-contamination","spec":"AA6061-T6 yield 276 MPa; UTS 310 MPa; hard-anodize thickness 25–75 µm; deposit-side surface roughness 6–12 µm Ra; outgassing rate <10⁻⁹ Torr·L/s/cm²","why":"6061-T6 supplies the strength to hold thin (3–5 mm) shield geometry without sagging at 200–400 °C chamber temperature. Applied Materials US 6,589,407 explicitly chooses aluminium over stainless because 'aluminum has a higher heat transfer coefficient in comparison to stainless steel' — letting the shield function as a heat sink for the embedded RF antenna."}]}},"L5-SPV":{"l4":[3,6],"l3":[3,6],"chips":{"3":[{"sub":"Solar module perimeter frame extrusion (highest-volume single Al component in the energy sector)","fab":"Extrusion (4,000–5,000 t press, 3-cavity die) → quench → T5 ageing → sulfuric-acid anodize → mitre-cut → corner-bracket clip or stake assembly","suf":"Anodized silver/clear (most common); anodized black (premium residential); powder-coated (rare); anodize ≥15 µm Class II / ≥25 µm Class I (coastal)","oem":"Jinko Solar Tiger Neo; LONGi Hi-MO 6/7; Trina Solar Vertex N; Canadian Solar TOPHiKu; JA Solar DeepBlue; First Solar Series 7 (CdTe); Risen Energy"},{"sub":"Solar mounting rail / tracker C-channel rail extrusion","fab":"Extrusion of C/Z/hat/omega profile → quench → T5 or T6 ageing → cut to standard 4.2–6.4 m lengths → anodize or mill finish","suf":"Anodized clear ≥18 µm Class I per AAMA 611 (coastal); mill finish for arid inland sites","oem":"Nextracker NX Horizon; Array Technologies DuraTrack HZ v3; Soltec SF7; GameChange Solar Genius; Arctech Solar SkySmart; Schletter FS Uno; Renusol VS+; Unirac SunFrame"},{"sub":"Single-axis tracker torque tube (rotating drive shaft)","fab":"Heavy extrusion (round, square, or octagonal hollow) → straightening → quench → T6 ageing → CNC-drill bearing-bracket holes → optional anodize","suf":"Mill finish or anodized clear; bearing-bracket holes CNC-bored ±0.1 mm","oem":"Nextracker NX Horizon Al variants; Soltec SF7 coastal/marine projects; STI Norland Al coastal; Array Technologies Al-specification projects (aluminium <10 % of SAT torque-tube market)"}],"6":[{"sub":"Tracker drive motor / junction-box weatherproof housing","fab":"Coil → laser cut → CNC press-brake → MIG/TIG weld seams → powder-coat → gasket installation","suf":"Powder-coated RAL 7035 (light grey) or RAL 9005 (black); EPDM perimeter gasket; stainless-steel fasteners","oem":"Nextracker NX Horizon drive units; Array Technologies DuraTrack controllers; Soltec SF7 drives; SMA / Huawei / Sungrow string combiner boxes"},{"sub":"Solar module mid-clamps, end-clamps, grounding lugs and cable-management clips","fab":"Progressive die stamping from coil → deburr → anodize or mill finish; grounding lugs drilled and punched; cable saddles formed","suf":"Mill finish or thin clear anodize; stainless-steel hardware for fasteners","oem":"Universally used across all utility-scale fixed-tilt and SAT installations globally — IronRidge, Unirac, EcoFasten, S-5!, ILSCO, Burndy, K2 Systems, Schletter, GameChange Solar"}]},"l3cards":{"3":[{"alloy":"AA6063-T5 (mainstream) or AA6005A-T5 (higher-strength for 144-cell long-span modules)","spec":"AA6063-T5 yield ≥145 MPa, UTS ≥185 MPa; AA6005A-T5 yield ≥240 MPa, UTS ≥260 MPa; wall 1.4 mm; static load 5,400 Pa snow / 2,400 Pa wind per IEC 61215; anodize ≥15 µm","why":"6063 gives the cleanest anodized surface for the visible frame; 6005A used on larger M10/G12-cell modules where the longer free span exceeds 6063's deflection limit. Down-gauging from 1.8 → 1.2 mm is driven by aluminium cost pressure and requires the higher-strength 6005A in many designs."},{"alloy":"AA6005A-T6 (global industry standard) or AA6061-T6 (NA legacy)","spec":"AA6005A-T6 yield ≥240 MPa, UTS ≥260 MPa; AA6061-T6 yield ≥276 MPa, UTS ≥310 MPa; deflection limit L/240 under combined wind + snow; anodize Class I ≥18 µm per AAMA 611","why":"6005A-T6 is the global industry standard for structural solar mounting rails ('most widely used specification globally' per cnaluprofile.com) — ~25 % strength uplift over 6063-T5 with similar extrudability. 6061-T6 still preferred in NA where engineers are familiar with the alloy."},{"alloy":"AA6061-T6 (NA) or AA6082-T6 (EU/Asia coastal); AA6005A-T6 in some designs","spec":"AA6061-T6 yield ≥276 MPa, UTS ≥310 MPa; torsional stiffness GJ ≥1.5×10⁵ N·m²/rad (round 150 mm × 5 mm section); deflection limit ±0.5° from drive end under design wind; 3× weight saving vs equivalent galvanised steel tube","why":"6082-T6 chosen in EU/coastal deployments for better Mn-content creep resistance over 25-year design life; 6061-T6 standard in NA. Aluminium wins where (a) coastal corrosion drives cost, (b) site-erection weight is critical, or (c) galvanic isolation from steel structure is required."},{"alloy":"AA6061-T6 (structural module clamps and grounding lugs); AA5052-H32 (formed utility clips); AA3003-H14 (cable saddles)","spec":"AA6061-T6 module-clamp pull-out ≥600 lbf (2.67 kN) per UL 2703 testing; grounding resistance <0.1 Ω per UL 2703; salt-spray >1,000 h per ASTM B117","why":"AA6061-T6 carries the structural-rating burden for module-clamp pull-out force and grounding continuity requirements per UL 2703; 5052/3003 used for cosmetic/utility small parts. T6 temper resists self-loosening under thermal cycling over 25-year outdoor life."}],"6":[{"alloy":"AA5052-H32 (primary for formed sheet); AA6061-T6 (machined gland plates); some die-cast AA380 variants","spec":"AA5052-H32 UTS ≥230 MPa, yield ≥195 MPa, elongation ≥10 %; thickness 2.5 mm; IP65 per IEC 60529; salt-spray >1,000 h per ASTM B117","why":"AA5052 has excellent press-brake formability without cracking at tight radii (5754 cracks at tight radii per Bison ProFab design guides); 6061 used only for machined gland plates where rigidity dominates. Both chosen over steel for coastal corrosion resistance."}]}},"L5-UAV":{"l4":[3,4,5],"l3":[3,4,5],"chips":{"3":[{"sub":"UAV airframe boom / motor arm tube","fab":"Hot extrusion + T6 + hard-anodise; round or octagonal thin-wall tube","suf":"Hard-anodise Type III 25 µm black per MIL-A-8625F","oem":"DJI Matrice 350; Zipline P2 Zip; Joby S4 boom; Northrop MQ-4C wing spar tube"},{"sub":"UAV landing-gear strut extrusion","fab":"Hot extrusion + T6; CNC machined ends; spring-loaded retract mechanism; titanium pin inserts","suf":"Hard-anodise Type III 25–50 µm per MIL-A-8625F","oem":"General Atomics MQ-9B main gear; Joby S4 landing leg; Wisk Cora; Archer Midnight"}],"4":[{"sub":"eVTOL motor / rotor-mount topology-optimised casting (L-PBF/DMLS)","fab":"Laser powder-bed fusion per ASTM F3318; topology-optimised geometry; T6 post-build ageing","suf":"Bead-blast + Type II anodise 6–12 µm per MIL-A-8625F","oem":"Joby S4 motor mount; Archer Midnight; Lilium; Wisk Cora drive unit"},{"sub":"Tiltrotor UAV gearbox housing / rotor-hub casting","fab":"LPDC + HIP (porosity < 0.5 %) + T6 ageing; CNC bearing-bore final machining","suf":"Conversion coat Alodine + epoxy paint","oem":"Bell APT 70 tiltrotor; Sikorsky Raider X demonstrator; AgustaWestland UAV sub-assemblies"}],"5":[{"sub":"MALE/HALE UAV main-spar fitting / lightening-hole panel","fab":"5-axis CNC from rolled plate; lightening-hole pattern; Alodine surface treat","suf":"Alodine 5200 (MIL-DTL-5541 Cl 3) + primer","oem":"Northrop MQ-4C Triton wing spar; General Atomics MQ-9B wing box"},{"sub":"CNC-machined eVTOL motor / duct mounting plate","fab":"3-axis CNC from rolled plate; countersunk fastener holes; flatness lap","suf":"Bead-blast + Type II anodise 8–12 µm per MIL-A-8625F","oem":"Joby Aviation S4 motor mount plate; Archer Midnight lift-motor plate; Volocopter motor frame"}]},"l3cards":{"3":[{"alloy":"6061-T6","spec":"UTS ≥ 310 MPa; YS ≥ 276 MPa; density 2.70 g/cm³; specific stiffness 25.5 GPa·cm³/g","why":"6061-T6 provides 80 % of 7075 strength at 60 % alloy cost with MIG/TIG weldability for motor-arm crash repair — critical for commercial delivery and survey drones."}],"4":[{"alloy":"7075-T6","spec":"UTS ≥ 572 MPa; YS ≥ 503 MPa; fatigue ≥ 10⁶ cycles at 140 MPa alternating stress","why":"7075-T6 handles landing-impact loads (≥ 3 g) without permanent deformation on retractable UAV gear of 20–600 kg MTOW class."},{"alloy":"7075-T651","spec":"UTS ≥ 572 MPa; YS ≥ 503 MPa; 5-axis tolerance ±0.05 mm; KIC ≥ 24 MPa√m (L-T) per AMS-QQ-A-250/12","why":"7075-T651 delivers the bearing strength needed at spar-web attachment points while machining to 2.5 mm web thickness without buckling — a combination 6061 cannot achieve at equal geometric efficiency."}],"5":[{"alloy":"AlSi10Mg","spec":"UTS ≥ 460 MPa (T6 after 160 °C × 8 h); YS ≥ 250 MPa; elongation ≥ 6 % per EOS AlSi10Mg datasheet","why":"DMLS AlSi10Mg enables topology-optimised motor-mount nodes impossible to cast conventionally; 30–50 % weight saving reduces hover power demand on eVTOL rotors. AlSi10Mg is the de-facto eVTOL motor-mount alloy per ADDMAN aerospace process notes."},{"alloy":"A356-T6","spec":"UTS ≥ 290 MPa; YS ≥ 200 MPa; fatigue endurance ≥ 70 MPa per AMS 4218; HIP porosity < 0.5 %","why":"A356-T6 + HIP brings casting fatigue within 80 % of wrought product, sufficient for < 2,000 h UAV TBO targets at sub-100-unit production rates where DMLS build time per unit is cost-prohibitive."}]}}};
+
+
+// ====== MAPPINGS ======
+// ====== PRICE DATA ======
+const PRICE_DATA = {
+  l4: {
+    0: { low: 30,   high: 300 },
+    1: { low: 3,    high: 40  },
+    2: { low: 2,    high: 30  },
+    3: { low: 2,    high: 5   },
+    4: { low: 2.5,  high: 7   },
+    5: { low: 6,    high: 40  },
+    6: { low: 2,    high: 5   },
+    7: { low: 3,    high: 8   },
+    8: { low: 2.2,  high: 6   }
+  },
+  l3: {
+    0: { low: 3,    high: 22  },
+    1: { low: 1.15, high: 1.6 },
+    2: { low: 1.6,  high: 3.5 },
+    3: { low: 1.25, high: 2.2 },
+    4: { low: 2.5,  high: 8   },
+    5: { low: 1.1,  high: 1.9 },
+    6: { low: 1.4,  high: 2.4 }
+  }
+};
+function fmtMult(low, high) { return low + '–' + high + '\xd7'; }
+
+const THEME_COLORS = { ai:'#2563eb', en:'#16a34a', ae:'#dc2626', mo:'#ea580c', md:'#9333ea' };
+
+// L4 index → which L5 themes it feeds (from arrow drawing code)
+const L4_TO_THEMES = {
+  0: ['ai'],
+  1: ['ai','en'],
+  2: ['en','ai'],
+  3: ['ae','mo','en'],
+  4: ['mo','ae'],
+  5: ['ai','ae','md'],
+  6: ['en','mo','md'],
+  7: ['en','md'],
+  8: ['md','mo']
+};
+
+// L3 index → which L4 boxes it feeds (updated: L3-3 now also feeds L4-5)
+const L3_TO_L4_MAP = {
+  0: [0, 7, 2],
+  1: [2, 1],
+  2: [7, 2],
+  3: [1, 3, 4, 5, 6],
+  4: [3, 4, 5],
+  5: [4, 1],
+  6: [3, 6, 8]
+};
+
+// Derive THEME_TO_L4 by inverting L4_TO_THEMES
+const THEME_TO_L4 = {};
+for (const [l4, themes] of Object.entries(L4_TO_THEMES)) {
+  for (const t of themes) {
+    if (!THEME_TO_L4[t]) THEME_TO_L4[t] = [];
+    THEME_TO_L4[t].push(parseInt(l4));
+  }
+}
+
+// Derive L4_TO_L3 by inverting L3_TO_L4_MAP
+const L4_TO_L3 = {};
+for (const [l3, l4s] of Object.entries(L3_TO_L4_MAP)) {
+  for (const l4 of l4s) {
+    if (!L4_TO_L3[l4]) L4_TO_L3[l4] = [];
+    L4_TO_L3[l4].push(parseInt(l3));
+  }
+}
+
+// Derive THEME_TO_L3
+const THEME_TO_L3 = {};
+for (const [theme, l4s] of Object.entries(THEME_TO_L4)) {
+  const s = new Set();
+  for (const l4 of l4s) for (const l3 of (L4_TO_L3[l4] || [])) s.add(l3);
+  THEME_TO_L3[theme] = [...s];
+}
+
+// ====== STATE ======
+let activeTheme = null;
+let activeItem = null;
+
+// ====== TOOLTIP ======
+const tt = document.getElementById('tooltip');
+let hideTimer = null;
+
+function showTooltip(html, rect) {
+  clearTimeout(hideTimer);
+  tt.innerHTML = html;
+  tt.style.display = 'block';
+  const margin = 10;
+  const ttW = Math.min(340, window.innerWidth - 2 * margin);
+  let left = rect.left + rect.width / 2 - ttW / 2;
+  left = Math.max(margin, Math.min(left, window.innerWidth - ttW - margin));
+  const top = rect.top - margin;
+  tt.style.width = ttW + 'px';
+  tt.style.left = left + 'px';
+  tt.style.top = top + 'px';
+  tt.style.transform = 'translateY(-100%)';
+}
+
+function scheduleHide() { hideTimer = setTimeout(() => { tt.style.display = 'none'; }, 150); }
+
+tt.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+tt.addEventListener('mouseleave', scheduleHide);
+
+// ====== CHIP INJECTION ======
+function clearChips() { document.querySelectorAll('.inj-chips').forEach(el => el.remove()); }
+
+function injectChips(itemKey) {
+  const d = STACK_DATA[itemKey];
+  if (!d) return;
+  const tColor = THEME_COLORS[activeTheme] || '#555';
+  const tBg = activeTheme === 'ai' ? '#eff6ff' : activeTheme === 'en' ? '#f0fdf4' :
+               activeTheme === 'ae' ? '#fef2f2' : activeTheme === 'mo' ? '#fff7ed' : '#faf5ff';
+
+  for (const [l4Idx, chips] of Object.entries(d.chips)) {
+    const box = document.querySelector(`[data-l4="${l4Idx}"]`);
+    if (!box) continue;
+    const wrap = document.createElement('div');
+    wrap.className = 'inj-chips';
+
+    chips.forEach(chip => {
+      const span = document.createElement('span');
+      span.className = 'subcomp-chip';
+      span.style.borderColor = tColor;
+      span.style.color = tColor;
+      span.style.background = tBg;
+      const label = chip.sub.length > 55 ? chip.sub.slice(0, 52) + '…' : chip.sub;
+      span.textContent = label;
+
+      const chipHtml = `<div class="tt-sub">${chip.sub}</div>
+           <div class="tt-sep"></div>
+           <div class="tt-field"><b>Fabrication Process</b><br>${chip.fab}</div>
+           <div class="tt-field"><b>Surface Finish</b><br>${chip.suf}</div>
+           <div class="tt-field"><b>OEM Examples</b><br>${chip.oem}</div>`;
+
+      span.addEventListener('mouseenter', e => {
+        e.stopPropagation();
+        showTooltip(chipHtml, span.getBoundingClientRect());
+      });
+      span.addEventListener('mouseleave', scheduleHide);
+      span.addEventListener('click', e => {
+        e.stopPropagation();
+        if (tt.style.display !== 'none' && tt._chip === span) { hideTooltip(); return; }
+        tt._chip = span;
+        showTooltip(chipHtml, span.getBoundingClientRect());
+      });
+      wrap.appendChild(span);
+    });
+
+    box.appendChild(wrap);
+  }
+}
+
+// ====== L3 HOVER SETUP ======
+function setupL3Hover(activeL3s, itemKey) {
+  document.querySelectorAll('[data-l3]').forEach(box => {
+    box.onmouseenter = null;
+    box.onmouseleave = null;
+    box.onclick = null;
+    const idx = box.dataset.l3;
+    if (!activeL3s.includes(parseInt(idx))) return;
+    if (!itemKey) return;
+
+    const buildL3Html = () => {
+      const cards = (STACK_DATA[itemKey]?.l3cards || {})[idx];
+      if (!cards || !cards.length) return null;
+      const pd3 = PRICE_DATA.l3[parseInt(idx)];
+      const priceHdr = pd3 ? `<div style="display:inline-flex;align-items:center;gap:5px;background:#faf5e4;border:1px solid #d4b84a;border-radius:12px;padding:2px 9px;font-size:8px;font-weight:700;color:#6b4900;margin-bottom:8px;">${fmtMult(pd3.low,pd3.high)} LME</div>` : '';
+      return priceHdr + cards.map((c, i) => `
+        ${i > 0 ? '<div class="tt-card-sep"></div>' : ''}
+        <div class="tt-alloy-card">
+          <div class="tt-alloy-name">${c.alloy}</div>
+          <div class="tt-field"><b>Typical Spec</b><br>${c.spec}</div>
+          <div class="tt-field"><b>Why this alloy</b><br>${c.why}</div>
+        </div>
+      `).join('') + (cards.length > 1 ? '<div class="tt-hint">Scroll for more alloys ↕</div>' : '');
+    };
+
+    box.onmouseenter = () => {
+      const html = buildL3Html();
+      if (html) showTooltip(html, box.getBoundingClientRect());
+    };
+    box.onmouseleave = scheduleHide;
+    box.onclick = e => {
+      e.stopPropagation();
+      if (tt.style.display !== 'none' && tt._l3 === box) { hideTooltip(); return; }
+      const html = buildL3Html();
+      if (!html) return;
+      tt._l3 = box;
+      showTooltip(html, box.getBoundingClientRect());
+    };
+  });
+}
+
+// ====== SELECTION ======
+function applySelection() {
+  const hasTheme = activeTheme !== null;
+  const hasItem = activeItem !== null;
+  const hasAny = hasTheme;
+
+  let activeL4s = [];
+  let activeL3s = [];
+
+  if (hasItem && STACK_DATA[activeItem]) {
+    activeL4s = STACK_DATA[activeItem].l4;
+    activeL3s = STACK_DATA[activeItem].l3;
+  } else if (hasTheme) {
+    activeL4s = THEME_TO_L4[activeTheme] || [];
+    activeL3s = THEME_TO_L3[activeTheme] || [];
+  }
+
+  // L4 boxes
+  document.querySelectorAll('[data-l4]').forEach(box => {
+    const idx = parseInt(box.dataset.l4);
+    const active = activeL4s.includes(idx);
+    box.classList.toggle('is-active', active);
+    box.classList.toggle('is-faded', hasAny && !active);
+    if (active && hasTheme) {
+      box.style.boxShadow = `0 0 0 2px ${THEME_COLORS[activeTheme] || '#888'}`;
+    } else {
+      box.style.boxShadow = '';
+    }
+  });
+
+  // L3 boxes
+  document.querySelectorAll('[data-l3]').forEach(box => {
+    const idx = parseInt(box.dataset.l3);
+    const active = activeL3s.includes(idx);
+    box.classList.toggle('is-active', active);
+    box.classList.toggle('is-faded', hasAny && !active);
+  });
+
+  // Theme cols
+  document.querySelectorAll('[data-l5]').forEach(col => {
+    const t = col.dataset.l5;
+    col.classList.toggle('is-active', hasTheme && t === activeTheme);
+    col.classList.toggle('is-faded', hasTheme && t !== activeTheme);
+  });
+
+  // Theme items: highlight/fade within column when item is selected
+  document.querySelectorAll('.theme-item').forEach(item => {
+    const iKey = item.dataset.item;
+    item.classList.toggle('item-selected', hasItem && iKey === activeItem);
+    item.classList.toggle('item-faded', hasItem && !!iKey && iKey !== activeItem);
+  });
+
+  // L4→L5 arrows
+  const svg45 = document.getElementById('l4l5-svg');
+  svg45.querySelectorAll('path').forEach(p => {
+    if (!hasAny) { p.style.opacity = '0.7'; return; }
+    const fromL4 = parseInt(p.dataset.fromL4);
+    const toTheme = p.dataset.toTheme;
+    const match = toTheme === activeTheme && activeL4s.includes(fromL4);
+    p.style.opacity = match ? '0.9' : '0.05';
+  });
+
+  // L3→L4 arrows
+  const svg34 = document.getElementById('l3l4-svg');
+  svg34.querySelectorAll('path').forEach(p => {
+    if (!hasAny) { p.style.opacity = '0.65'; return; }
+    const fromL3 = parseInt(p.dataset.fromL3);
+    const toL4 = parseInt(p.dataset.toL4);
+    const match = activeL3s.includes(fromL3) && activeL4s.includes(toL4);
+    p.style.opacity = match ? '0.9' : '0.05';
+  });
+
+  // Price strips: visible only when no specific item selected
+  const showStrips = !hasItem;
+  ['ps-l3l4','ps-l2l3','ps-l1l2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.opacity = showStrips ? '1' : '0';
+  });
+
+  // L4 price badges: show per-node range when item selected
+  document.querySelectorAll('[data-l4]').forEach(box => {
+    const bidx = parseInt(box.dataset.l4);
+    const badge = box.querySelector('.price-badge');
+    if (badge) badge.classList.toggle('pb-on', hasItem && activeL4s.includes(bidx));
+  });
+
+  // Chips
+  clearChips();
+  if (hasItem) {
+    injectChips(activeItem);
+    setupL3Hover(activeL3s, activeItem);
+  } else {
+    setupL3Hover([], null);
+  }
+
+  hideTooltip();
+}
+
+function hideTooltip() { clearTimeout(hideTimer); tt.style.display = 'none'; }
+
+// ====== ARROW DRAWING ======
+function drawAllArrows() {
+  const lblEl = document.querySelector('.layer-label');
+  const lblW = lblEl ? (lblEl.offsetWidth || 42) : 42;
+
+  // By-products sidebar
+  const bpSvg = document.getElementById('bp-svg');
+  const bpBox = document.getElementById('bp-box');
+  if (bpSvg && bpBox) {
+    Array.from(bpSvg.querySelectorAll('line,text,path,circle')).forEach(e => e.remove());
+    const sRect = bpSvg.getBoundingClientRect();
+    if (sRect.height > 0) {
+      const ns = 'http://www.w3.org/2000/svg';
+      const labels = Array.from(document.querySelectorAll('.layer-label'));
+      const l1El = labels.find(l => l.textContent.includes('Layer 1'))?.closest('.layer-row');
+      const l5El = labels.find(l => l.textContent.includes('Layer 5'))?.closest('.layer-row');
+      if (l1El && l5El) {
+        const l1R = l1El.getBoundingClientRect();
+        const l5R = l5El.getBoundingClientRect();
+        const yL5 = l5R.top + l5R.height/2 - sRect.top;
+        const bayerEl = Array.from(l1El.querySelectorAll('.bayer-main')).find(el => el.textContent.includes('Alumina') || el.textContent.includes('Bayer'));
+        const bayerR = bayerEl ? bayerEl.getBoundingClientRect() : l1R;
+        const yL1 = bayerR.top + bayerR.height/2 - sRect.top;
+        const startX = bayerR.right - sRect.left;
+        const boxH = 90;
+        bpBox.style.top = Math.max(0, yL1 - boxH/2) + 'px';
+        bpBox.style.display = 'block';
+        const lineX = 18;
+        const boxTopY = parseFloat(bpBox.style.top);
+        const hLine = document.createElementNS(ns, 'line');
+        hLine.setAttribute('x1', startX); hLine.setAttribute('y1', yL1);
+        hLine.setAttribute('x2', lineX);  hLine.setAttribute('y2', yL1);
+        hLine.setAttribute('stroke', '#c9a93a'); hLine.setAttribute('stroke-width', '1.5'); hLine.setAttribute('stroke-dasharray', '4,3');
+        bpSvg.appendChild(hLine);
+        const dot = document.createElementNS(ns, 'circle');
+        dot.setAttribute('cx', startX); dot.setAttribute('cy', yL1); dot.setAttribute('r', '3'); dot.setAttribute('fill', '#c9a93a');
+        bpSvg.appendChild(dot);
+        const vLine = document.createElementNS(ns, 'line');
+        vLine.setAttribute('x1', lineX); vLine.setAttribute('y1', boxTopY);
+        vLine.setAttribute('x2', lineX); vLine.setAttribute('y2', yL5);
+        vLine.setAttribute('stroke', '#c9a93a'); vLine.setAttribute('stroke-width', '1.5'); vLine.setAttribute('stroke-dasharray', '5,4');
+        bpSvg.appendChild(vLine);
+        const hL5 = document.createElementNS(ns, 'line');
+        hL5.setAttribute('x1', lineX); hL5.setAttribute('y1', yL5);
+        hL5.setAttribute('x2', 2);     hL5.setAttribute('y2', yL5);
+        hL5.setAttribute('stroke', '#c9a93a'); hL5.setAttribute('stroke-width', '1.5'); hL5.setAttribute('marker-end', 'url(#arr-gold-h)');
+        bpSvg.appendChild(hL5);
+      }
+    }
+  }
+
+  // L4 → L5 arrows
+  const svg45 = document.getElementById('l4l5-svg');
+  if (svg45 && svg45.clientWidth > 0) {
+    Array.from(svg45.querySelectorAll('path')).forEach(p => p.remove());
+    const W = svg45.clientWidth;
+    const H = svg45.clientHeight || 80;
+    const cW = W - lblW;
+    const colors = THEME_COLORS;
+    const l5Idx  = { ai:0, en:1, ae:2, mo:3, md:4 };
+    const xL4 = i => lblW + cW*(i+0.5)/9;
+    const xL5 = t => lblW + cW*(l5Idx[t]+0.5)/5;
+
+    [
+      { from:0, to:['ai'] },
+      { from:1, to:['ai','en'] },
+      { from:2, to:['en','ai'] },
+      { from:3, to:['ae','mo','en'] },
+      { from:4, to:['mo','ae'] },
+      { from:5, to:['ai','ae','md'] },
+      { from:6, to:['ai','en','mo','md'] },
+      { from:7, to:['en','md'] },
+      { from:8, to:['md','mo'] }
+    ].forEach(({from, to}) => {
+      const n = to.length;
+      to.forEach((theme, i) => {
+        const sp = n>1 ? (i-(n-1)/2)*10 : 0;
+        const x1 = xL4(from) + sp;
+        const x2 = xL5(theme);
+        const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+        p.setAttribute('d', `M${x1} ${H} C${x1} ${H*.65},${x2} ${H*.35},${x2} 5`);
+        p.setAttribute('stroke', colors[theme]);
+        p.setAttribute('stroke-width','1.5');
+        p.setAttribute('fill','none');
+        p.setAttribute('opacity','0.7');
+        p.setAttribute('marker-end', `url(#arr-${theme})`);
+        p.dataset.fromL4 = from;
+        p.dataset.toTheme = theme;
+        svg45.appendChild(p);
+      });
+    });
+  }
+
+  // L3 → L4 arrows (updated: L3-3 also connects to L4-5)
+  const svg34 = document.getElementById('l3l4-svg');
+  if (svg34 && svg34.clientWidth > 0) {
+    Array.from(svg34.querySelectorAll('path')).forEach(p => p.remove());
+    const W = svg34.clientWidth;
+    const H = svg34.clientHeight || 120;
+    const cW = W - lblW;
+    const xL3 = i => lblW + cW*(i+0.5)/7;
+    const xL4 = i => lblW + cW*(i+0.5)/9;
+
+    [
+      { from:0, to:[0,7,2] },
+      { from:1, to:[2,1] },
+      { from:2, to:[7,2] },
+      { from:3, to:[1,3,4,5,6] },
+      { from:4, to:[3,4,5] },
+      { from:5, to:[4,1] },
+      { from:6, to:[3,6,8] }
+    ].forEach(({from, to}) => {
+      const n = to.length;
+      to.forEach((dest, i) => {
+        const sp  = n>1 ? (i-(n-1)/2)*10 : 0;
+        const lnd = n>1 ? (i-(n-1)/2)*4  : 0;
+        const x1 = xL3(from) + sp;
+        const x2 = xL4(dest) + lnd;
+        const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+        p.setAttribute('d', `M${x1} ${H} C${x1} ${H*.65},${x2} ${H*.35},${x2} 5`);
+        p.setAttribute('stroke','#888');
+        p.setAttribute('stroke-width','1.5');
+        p.setAttribute('fill','none');
+        p.setAttribute('opacity','0.65');
+        p.setAttribute('marker-end','url(#arr-grey)');
+        p.dataset.fromL3 = from;
+        p.dataset.toL4 = dest;
+        svg34.appendChild(p);
+      });
+    });
+  }
+
+  // Re-apply current selection state to newly drawn paths
+  if (activeTheme !== null) applySelection();
+}
+
+// ====== EVENTS ======
+
+// Theme header click → column-level selection
+document.querySelectorAll('.theme-header').forEach(h => {
+  h.addEventListener('click', e => {
+    e.stopPropagation();
+    const col = h.closest('[data-l5]');
+    const theme = col.dataset.l5;
+    if (activeTheme === theme && !activeItem) {
+      activeTheme = null;
+    } else {
+      activeTheme = theme;
+    }
+    activeItem = null;
+    applySelection();
+  });
+});
+
+// Theme item click — with data-item: item-level selection
+document.querySelectorAll('.theme-item[data-item]').forEach(item => {
+  item.addEventListener('click', e => {
+    e.stopPropagation();
+    const col = item.closest('[data-l5]');
+    const theme = col.dataset.l5;
+    const key = item.dataset.item;
+    if (activeItem === key) {
+      activeItem = null;
+      // keep theme active for column-level view
+    } else {
+      activeTheme = theme;
+      activeItem = key;
+    }
+    applySelection();
+  });
+});
+
+// Theme item click — without data-item: column-level selection
+document.querySelectorAll('.theme-item:not([data-item])').forEach(item => {
+  item.addEventListener('click', e => {
+    e.stopPropagation();
+    const col = item.closest('[data-l5]');
+    const theme = col.dataset.l5;
+    if (activeTheme === theme && !activeItem) {
+      activeTheme = null;
+    } else {
+      activeTheme = theme;
+      activeItem = null;
+    }
+    applySelection();
+  });
+  item.style.cursor = 'pointer';
+});
+
+// Click/touch outside → reset
+function handleOutside(e) {
+  const t = e.target;
+  if (t.closest('[data-l5]') || t.closest('#tooltip') ||
+      t.closest('[data-l4]') || t.closest('[data-l3]')) return;
+  hideTooltip();
+  activeTheme = null;
+  activeItem = null;
+  applySelection();
+}
+document.addEventListener('click', handleOutside);
+
+// Touch support: track whether the finger moved (scroll vs tap)
+let _touchMoved = false;
+document.addEventListener('touchstart', () => { _touchMoved = false; }, { passive: true });
+document.addEventListener('touchmove',  () => { _touchMoved = true;  }, { passive: true });
+document.addEventListener('touchend', e => { if (!_touchMoved) handleOutside(e); }, { passive: true });
+
+// ====== INIT ======
+if (document.readyState === 'complete') {
+  drawAllArrows();
+  setTimeout(drawAllArrows, 200);
+} else {
+  window.addEventListener('load', () => {
+    drawAllArrows();
+    setTimeout(drawAllArrows, 200);
+    setTimeout(drawAllArrows, 600);
+  });
+}
+</script>
+</body>
+</html>
